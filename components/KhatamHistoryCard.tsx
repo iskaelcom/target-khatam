@@ -2,16 +2,18 @@ import { AppColors } from '@/constants/Colors';
 import { useLanguage } from '@/context/LanguageContext';
 import { useProgress } from '@/context/ProgressContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function KhatamHistoryCard() {
     const { khatamHistory } = useProgress();
     const { t } = useLanguage();
+    const router = useRouter();
     const [expandedId, setExpandedId] = useState<string | null>(null);
 
     if (khatamHistory.totalCount === 0) {
-        return null; // Don't show if no completions
+        return null;
     }
 
     const formatDate = (isoString: string) => {
@@ -29,8 +31,7 @@ export default function KhatamHistoryCard() {
         return `${hours}:${minutes}`;
     };
 
-    // Show latest 5 completions
-    const recentCompletions = khatamHistory.completions.slice(0, 5);
+    const recentCompletions = khatamHistory.completions.slice(0, 3);
 
     return (
         <View style={styles.container}>
@@ -79,6 +80,14 @@ export default function KhatamHistoryCard() {
                     </Pressable>
                 ))}
             </View>
+
+            <Pressable
+                style={styles.viewAllButton}
+                onPress={() => router.push('/(tabs)/khatam-history' as any)}
+            >
+                <Text style={styles.viewAllText}>{t.history.viewHistory}</Text>
+                <MaterialCommunityIcons name="chevron-right" size={18} color={AppColors.primary} />
+            </Pressable>
         </View>
     );
 }
@@ -86,10 +95,10 @@ export default function KhatamHistoryCard() {
 const styles = StyleSheet.create({
     container: {
         backgroundColor: AppColors.card,
-        borderRadius: 12,
+        borderRadius: 16,
         padding: 16,
-        marginHorizontal: 20,
-        marginVertical: 8,
+        marginHorizontal: 16,
+        marginVertical: 12,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
@@ -179,5 +188,20 @@ const styles = StyleSheet.create({
     detailText: {
         fontSize: 13,
         color: AppColors.textSecondary,
+    },
+    viewAllButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 4,
+        paddingTop: 12,
+        marginTop: 4,
+        borderTopWidth: 1,
+        borderTopColor: AppColors.cardBorder,
+    },
+    viewAllText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: AppColors.primary,
     },
 });

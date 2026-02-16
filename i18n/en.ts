@@ -100,6 +100,7 @@ export const en = {
     completionMessage: 'You have completed reading the entire Quran!',
     startAgain: 'Start Again',
     startAgainConfirm: 'Start a new khatam? Your reading progress will be reset but khatam history will be preserved.',
+    viewHistory: 'View History',
   },
 };
 

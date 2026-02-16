@@ -22,7 +22,7 @@ function getMotivation(percentage: number, t: Translations) {
 }
 
 export default function HomeScreen() {
-  const { overallProgress, juzProgress, isLoading, markUpToPage, startNewKhatam } = useProgress();
+  const { overallProgress, juzProgress, isLoading, markUpToPage, startNewKhatam, khatamHistory } = useProgress();
   const { t } = useLanguage();
   const [pageInput, setPageInput] = useState('');
 
@@ -69,8 +69,16 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.title}>{t.app.title}</Text>
-          <Text style={styles.subtitle}>{t.home.subtitle}</Text>
+          <View>
+            <Text style={styles.title}>{t.app.title}</Text>
+            <Text style={styles.subtitle}>{t.home.subtitle}</Text>
+          </View>
+          {khatamHistory.totalCount > 0 && (
+            <View style={styles.khatamBadge}>
+              <MaterialCommunityIcons name="trophy" size={22} color={AppColors.gold} />
+              <Text style={styles.khatamBadgeText}>{khatamHistory.totalCount}</Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.chartSection}>
@@ -94,8 +102,8 @@ export default function HomeScreen() {
           )}
         </View>
 
-        <DailyTargetCard />
-        <KhatamHistoryCard />
+
+
 
         <View style={styles.inputSection}>
           <Text style={styles.sectionTitle}>{t.home.manualInput}</Text>
@@ -118,6 +126,9 @@ export default function HomeScreen() {
             </Pressable>
           </View>
         </View>
+
+        <DailyTargetCard />
+        <KhatamHistoryCard />
 
         <DailyRecap />
 
@@ -149,9 +160,26 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 16,
     paddingBottom: 8,
+  },
+  khatamBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: AppColors.gold + '15',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  khatamBadgeText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: AppColors.gold,
   },
   title: {
     fontSize: 28,

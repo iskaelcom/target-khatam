@@ -102,5 +102,6 @@ export const id: Translations = {
     completionMessage: 'Anda telah menyelesaikan membaca seluruh Al-Quran!',
     startAgain: 'Mulai Lagi',
     startAgainConfirm: 'Mulai khatam baru? Progres bacaan akan direset tetapi riwayat khatam tetap tersimpan.',
+    viewHistory: 'Lihat Riwayat',
   },
 };
