@@ -21,9 +21,10 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     getSettings().then((settings) => setLanguageState(settings.language));
   }, []);
 
-  const setLanguage = useCallback((lang: Language) => {
+  const setLanguage = useCallback(async (lang: Language) => {
     setLanguageState(lang);
-    saveSettings({ language: lang });
+    const current = await getSettings();
+    await saveSettings({ ...current, language: lang });
   }, []);
 
   const t = translations[language];
