@@ -1,15 +1,16 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TextInput, Pressable, Alert, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useProgress } from '@/context/ProgressContext';
-import { useLanguage } from '@/context/LanguageContext';
-import { AppColors } from '@/constants/Colors';
 import DonutChart from '@/components/charts/DonutChart';
-import JuzCard from '@/components/JuzCard';
 import DailyRecap from '@/components/DailyRecap';
-import { Translations } from '@/i18n/en';
+import DailyTargetCard from '@/components/DailyTargetCard';
+import JuzCard from '@/components/JuzCard';
+import { AppColors } from '@/constants/Colors';
 import { TOTAL_PAGES } from '@/constants/quranData';
+import { useLanguage } from '@/context/LanguageContext';
+import { useProgress } from '@/context/ProgressContext';
+import { Translations } from '@/i18n/en';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import React, { useCallback, useState } from 'react';
+import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 function getMotivation(percentage: number, t: Translations) {
   if (percentage === 0) return t.home.motivation.zero;
@@ -65,6 +66,8 @@ export default function HomeScreen() {
             {getMotivation(overallProgress.percentage, t)}
           </Text>
         </View>
+
+        <DailyTargetCard />
 
         <View style={styles.inputSection}>
           <Text style={styles.sectionTitle}>{t.home.manualInput}</Text>

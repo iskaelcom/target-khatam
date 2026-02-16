@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { ReadPages, JuzProgress, OverallProgress, DailyLog } from '@/types';
-import { getReadPages, saveReadPages, clearAllData, getDailyLog, saveDailyLog } from '@/services/storage';
+import { JUZ_DATA, TOTAL_PAGES } from '@/constants/quranData';
+import { clearAllData, getDailyLog, getReadPages, getSettings, saveDailyLog, saveReadPages, saveSettings } from '@/services/storage';
+import { DailyLog, JuzProgress, OverallProgress, ReadPages, TargetSettings } from '@/types';
 import { getJuzProgress, getOverallProgress } from '@/utils/progress';
-import { JUZ_DATA } from '@/constants/quranData';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 function getTodayKey(): string {
   const now = new Date();
@@ -19,9 +19,13 @@ interface ProgressContextType {
   overallProgress: OverallProgress;
   dailyLog: DailyLog;
   todayPages: number;
+  targetSettings: TargetSettings;
+  dailyTarget: number | null;
+  daysRemaining: number | null;
   togglePage: (page: number) => void;
   markUpToPage: (page: number) => void;
   markJuz: (juzId: number, markAs: 'read' | 'unread') => void;
+  updateTargetSettings: (settings: TargetSettings) => Promise<void>;
   resetAll: () => Promise<void>;
 }
 
@@ -30,14 +34,24 @@ const ProgressContext = createContext<ProgressContextType | undefined>(undefined
 export function ProgressProvider({ children }: { children: React.ReactNode }) {
   const [readPages, setReadPages] = useState<ReadPages>([]);
   const [dailyLog, setDailyLog] = useState<DailyLog>({});
+  const [targetSettings, setTargetSettings] = useState<TargetSettings>({
+    enabled: false,
+    mode: 'days',
+    targetDays: 30,
+    khatamPerMonth: 2,
+    startDate: '',
+  });
   const [isLoading, setIsLoading] = useState(true);
   const dailyLogRef = useRef<DailyLog>({});
 
   useEffect(() => {
-    Promise.all([getReadPages(), getDailyLog()]).then(([pages, log]) => {
+    Promise.all([getReadPages(), getDailyLog(), getSettings()]).then(([pages, log, settings]) => {
       setReadPages(pages);
       setDailyLog(log);
       dailyLogRef.current = log;
+      if (settings.target) {
+        setTargetSettings(settings.target);
+      }
       setIsLoading(false);
     });
   }, []);
@@ -121,20 +135,88 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     });
   }, [recordDaily]);
 
+  const updateTargetSettings = useCallback(async (settings: TargetSettings) => {
+    setTargetSettings(settings);
+    const appSettings = await getSettings();
+    appSettings.target = settings;
+    await saveSettings(appSettings);
+  }, []);
+
   const resetAll = useCallback(async () => {
     await clearAllData();
     setReadPages([]);
     setDailyLog({});
     dailyLogRef.current = {};
+    setTargetSettings({ enabled: false, mode: 'days', targetDays: 30, khatamPerMonth: 2, startDate: '' });
   }, []);
 
   const juzProgress = useMemo(() => getJuzProgress(readPages), [readPages]);
   const overallProgress = useMemo(() => getOverallProgress(readPages), [readPages]);
   const todayPages = dailyLog[getTodayKey()] || 0;
 
+  // Calculate effective target days and total pages based on mode
+  const { effectiveTargetDays, targetTotalPages } = useMemo(() => {
+    if (targetSettings.mode === 'khatam_per_month') {
+      return {
+        effectiveTargetDays: 30, // Fixed 30 days for monthly cycle
+        targetTotalPages: TOTAL_PAGES * targetSettings.khatamPerMonth,
+      };
+    }
+    return {
+      effectiveTargetDays: targetSettings.targetDays,
+      targetTotalPages: TOTAL_PAGES, // Single khatam
+    };
+  }, [targetSettings.mode, targetSettings.targetDays, targetSettings.khatamPerMonth]);
+
+  // Calculate days remaining
+  const daysRemaining = useMemo(() => {
+    if (!targetSettings.enabled || !targetSettings.startDate) return null;
+
+    const start = new Date(targetSettings.startDate);
+    const today = new Date();
+    const diffTime = today.getTime() - start.getTime();
+    const daysPassed = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (targetSettings.mode === 'khatam_per_month') {
+      // For khatam mode, show remaining days in CURRENT khatam cycle
+      const daysPerKhatam = 30 / targetSettings.khatamPerMonth;
+      const currentCycleDays = daysPassed % daysPerKhatam;
+      const remaining = Math.ceil(daysPerKhatam - currentCycleDays);
+      return Math.max(0, remaining);
+    }
+
+    // For days mode, show total remaining days
+    const remaining = effectiveTargetDays - daysPassed;
+    return Math.max(0, remaining);
+  }, [targetSettings, effectiveTargetDays]);
+
+  // Calculate daily target
+  const dailyTarget = useMemo(() => {
+    if (!targetSettings.enabled || !targetSettings.startDate || daysRemaining === null) return null;
+
+    const remaining = targetTotalPages - overallProgress.pagesRead;
+    const daysLeft = daysRemaining || 1;
+    return Math.ceil(remaining / daysLeft);
+  }, [targetSettings, targetTotalPages, overallProgress.pagesRead, daysRemaining]);
+
   return (
     <ProgressContext.Provider
-      value={{ readPages, isLoading, juzProgress, overallProgress, dailyLog, todayPages, togglePage, markUpToPage, markJuz, resetAll }}>
+      value={{
+        readPages,
+        isLoading,
+        juzProgress,
+        overallProgress,
+        dailyLog,
+        todayPages,
+        targetSettings,
+        dailyTarget,
+        daysRemaining,
+        togglePage,
+        markUpToPage,
+        markJuz,
+        updateTargetSettings,
+        resetAll,
+      }}>
       {children}
     </ProgressContext.Provider>
   );

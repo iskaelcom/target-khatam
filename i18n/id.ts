@@ -49,6 +49,7 @@ export const id: Translations = {
     version: 'Versi',
     totalPagesRead: 'Total Halaman Dibaca',
     juzCompleted: 'Juz Selesai',
+    targetSettings: 'Pengaturan Target Harian/Khatam',
   },
   juzDetail: {
     markAllRead: 'Tandai Semua Dibaca',
@@ -60,5 +61,35 @@ export const id: Translations = {
     cancel: 'Batal',
     confirm: 'Konfirmasi',
     ok: 'OK',
+  },
+  target: {
+    title: 'Target Harian',
+    enabled: 'Aktifkan Target Harian',
+    targetDays: 'Target Penyelesaian',
+    pagesPerDay: 'hal/hari',
+    daysRemaining: 'hari tersisa',
+    todayProgress: 'Progress Hari Ini',
+    onTrack: 'Sesuai target!',
+    behind: 'Tertinggal',
+    ahead: 'Melebihi target!',
+    targetEnded: 'Periode target berakhir',
+    customDays: 'Hari kustom',
+    mode: {
+      days: 'Target Hari',
+      khatamPerMonth: 'Khatam per Bulan',
+    },
+    khatamCount: 'khatam/bulan',
+    presets: {
+      week: '7 Hari',
+      halfMonth: '15 Hari',
+      month: '30 Hari',
+      twoMonths: '60 Hari',
+    },
+    presetsKhatam: {
+      once: '1x',
+      twice: '2x',
+      thrice: '3x',
+    },
+    customKhatam: 'Khatam kustom',
   },
 };

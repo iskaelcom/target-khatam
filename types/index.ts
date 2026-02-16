@@ -2,8 +2,17 @@ export type ReadPages = number[];
 
 export type Language = 'id' | 'en';
 
+export interface TargetSettings {
+  enabled: boolean;
+  mode: 'days' | 'khatam_per_month'; // Target by days or khatam per month
+  targetDays: number;        // Used when mode = 'days'
+  khatamPerMonth: number;    // Used when mode = 'khatam_per_month'
+  startDate: string;         // ISO date string when target started (YYYY-MM-DD)
+}
+
 export interface AppSettings {
   language: Language;
+  target?: TargetSettings;   // Optional target settings
 }
 
 export interface JuzDefinition {

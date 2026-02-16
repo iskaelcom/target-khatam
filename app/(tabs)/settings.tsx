@@ -1,11 +1,12 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Alert, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useProgress } from '@/context/ProgressContext';
-import { useLanguage } from '@/context/LanguageContext';
-import { AppColors } from '@/constants/Colors';
 import LanguageToggle from '@/components/LanguageToggle';
+import TargetSettingsSection from '@/components/TargetSettingsSection';
+import { AppColors } from '@/constants/Colors';
+import { useLanguage } from '@/context/LanguageContext';
+import { useProgress } from '@/context/ProgressContext';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import React from 'react';
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function SettingsScreen() {
   const { overallProgress, juzProgress, resetAll } = useProgress();
@@ -46,6 +47,8 @@ export default function SettingsScreen() {
           <Text style={styles.sectionTitle}>{t.settings.language}</Text>
           <LanguageToggle />
         </View>
+
+        <TargetSettingsSection />
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>

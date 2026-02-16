@@ -1,5 +1,5 @@
+import { AppSettings, DailyLog, ReadPages } from '@/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ReadPages, AppSettings, DailyLog } from '@/types';
 
 const KEYS = {
   READ_PAGES: '@target-khatam/read-pages',
@@ -23,9 +23,45 @@ export async function saveReadPages(pages: ReadPages): Promise<void> {
 export async function getSettings(): Promise<AppSettings> {
   try {
     const raw = await AsyncStorage.getItem(KEYS.SETTINGS);
-    return raw ? JSON.parse(raw) : { language: 'id' };
+    if (raw) {
+      const settings = JSON.parse(raw);
+      // Ensure target has default values if not present
+      if (!settings.target) {
+        settings.target = {
+          enabled: false,
+          mode: 'days',
+          targetDays: 30,
+          khatamPerMonth: 2,
+          startDate: '',
+        };
+      } else {
+        // Ensure new fields exist for backward compatibility
+        if (!settings.target.mode) settings.target.mode = 'days';
+        if (!settings.target.khatamPerMonth) settings.target.khatamPerMonth = 2;
+      }
+      return settings;
+    }
+    return {
+      language: 'id',
+      target: {
+        enabled: false,
+        mode: 'days',
+        targetDays: 30,
+        khatamPerMonth: 2,
+        startDate: '',
+      },
+    };
   } catch {
-    return { language: 'id' };
+    return {
+      language: 'id',
+      target: {
+        enabled: false,
+        mode: 'days',
+        targetDays: 30,
+        khatamPerMonth: 2,
+        startDate: '',
+      },
+    };
   }
 }
 

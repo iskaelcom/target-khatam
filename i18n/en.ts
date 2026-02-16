@@ -47,6 +47,7 @@ export const en = {
     version: 'Version',
     totalPagesRead: 'Total Pages Read',
     juzCompleted: 'Juz Completed',
+    targetSettings: 'Daily/Khatam Target Settings',
   },
   juzDetail: {
     markAllRead: 'Mark All Read',
@@ -58,6 +59,36 @@ export const en = {
     cancel: 'Cancel',
     confirm: 'Confirm',
     ok: 'OK',
+  },
+  target: {
+    title: 'Daily Target',
+    enabled: 'Enable Daily Target',
+    targetDays: 'Target Completion',
+    pagesPerDay: 'pages/day',
+    daysRemaining: 'days left',
+    todayProgress: "Today's Progress",
+    onTrack: 'On track!',
+    behind: 'Behind schedule',
+    ahead: 'Ahead of schedule!',
+    targetEnded: 'Target period ended',
+    customDays: 'Custom days',
+    mode: {
+      days: 'Target Days',
+      khatamPerMonth: 'Khatam per Month',
+    },
+    khatamCount: 'khatam/month',
+    presets: {
+      week: '7 Days',
+      halfMonth: '15 Days',
+      month: '30 Days',
+      twoMonths: '60 Days',
+    },
+    presetsKhatam: {
+      once: '1x',
+      twice: '2x',
+      thrice: '3x',
+    },
+    customKhatam: 'Custom khatam/month',
   },
 };
 
