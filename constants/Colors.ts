@@ -1,0 +1,18 @@
+export const AppColors = {
+  primary: '#1B5E20',
+  primaryLight: '#4CAF50',
+  secondary: '#C8A951',
+  secondaryLight: '#F5E6A3',
+  background: '#FAFAF5',
+  card: '#FFFFFF',
+  cardBorder: '#E8E0D0',
+  textPrimary: '#1A1A2E',
+  textSecondary: '#6B7280',
+  success: '#2E7D32',
+  warning: '#F59E0B',
+  inactive: '#E0E0E0',
+  danger: '#DC2626',
+  white: '#FFFFFF',
+  tabBar: '#FFFFFF',
+  tabBarBorder: '#E8E0D0',
+};

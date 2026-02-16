@@ -1,98 +1,199 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TextInput, Pressable, Alert, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useProgress } from '@/context/ProgressContext';
+import { useLanguage } from '@/context/LanguageContext';
+import { AppColors } from '@/constants/Colors';
+import DonutChart from '@/components/charts/DonutChart';
+import JuzCard from '@/components/JuzCard';
+import DailyRecap from '@/components/DailyRecap';
+import { Translations } from '@/i18n/en';
+import { TOTAL_PAGES } from '@/constants/quranData';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+function getMotivation(percentage: number, t: Translations) {
+  if (percentage === 0) return t.home.motivation.zero;
+  if (percentage < 25) return t.home.motivation.low;
+  if (percentage < 75) return t.home.motivation.mid;
+  if (percentage < 100) return t.home.motivation.high;
+  return t.home.motivation.done;
+}
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const { overallProgress, juzProgress, isLoading, markUpToPage } = useProgress();
+  const { t } = useLanguage();
+  const [pageInput, setPageInput] = useState('');
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const handleMarkPage = useCallback(() => {
+    const page = parseInt(pageInput, 10);
+    if (isNaN(page) || page < 1 || page > TOTAL_PAGES) {
+      if (Platform.OS === 'web') {
+        window.alert(t.home.invalidPage);
+      } else {
+        Alert.alert('', t.home.invalidPage);
+      }
+      return;
+    }
+    markUpToPage(page);
+    setPageInput('');
+  }, [pageInput, markUpToPage, t]);
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={AppColors.primary} />
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <Text style={styles.title}>{t.app.title}</Text>
+          <Text style={styles.subtitle}>{t.home.subtitle}</Text>
+        </View>
+
+        <View style={styles.chartSection}>
+          <Text style={styles.sectionTitle}>{t.home.overallProgress}</Text>
+          <DonutChart
+            percentage={overallProgress.percentage}
+            pagesRead={overallProgress.pagesRead}
+            totalPages={overallProgress.totalPages}
+          />
+          <Text style={styles.motivation}>
+            {getMotivation(overallProgress.percentage, t)}
+          </Text>
+        </View>
+
+        <View style={styles.inputSection}>
+          <Text style={styles.sectionTitle}>{t.home.manualInput}</Text>
+          <View style={styles.inputCard}>
+            <MaterialCommunityIcons name="book-open-page-variant" size={24} color={AppColors.primary} />
+            <TextInput
+              style={styles.textInput}
+              placeholder={t.home.inputPlaceholder}
+              placeholderTextColor={AppColors.textSecondary}
+              keyboardType="number-pad"
+              value={pageInput}
+              onChangeText={setPageInput}
+              onSubmitEditing={handleMarkPage}
+              returnKeyType="done"
+            />
+            <Pressable
+              style={({ pressed }) => [styles.markButton, pressed && styles.markButtonPressed]}
+              onPress={handleMarkPage}>
+              <Text style={styles.markButtonText}>{t.home.markRead}</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        <DailyRecap />
+
+        <View style={styles.juzSection}>
+          <Text style={styles.sectionTitle}>{t.home.juzOverview}</Text>
+          {juzProgress.map((jp) => (
+            <JuzCard key={jp.juz.id} juzProgress={jp} />
+          ))}
+        </View>
+
+        <View style={styles.bottomSpacer} />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+    backgroundColor: AppColors.background,
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: AppColors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scrollContent: {
+    paddingBottom: 20,
+  },
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: AppColors.primary,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: AppColors.textSecondary,
+    marginTop: 4,
+  },
+  chartSection: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: AppColors.textPrimary,
+    paddingHorizontal: 20,
+    marginBottom: 8,
+    alignSelf: 'flex-start',
+  },
+  motivation: {
+    fontSize: 15,
+    color: AppColors.secondary,
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  inputSection: {
+    paddingTop: 16,
+  },
+  inputCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    backgroundColor: AppColors.card,
+    marginHorizontal: 16,
+    borderRadius: 12,
+    padding: 12,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  textInput: {
+    flex: 1,
+    fontSize: 16,
+    color: AppColors.textPrimary,
+    backgroundColor: AppColors.background,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  markButton: {
+    backgroundColor: AppColors.primary,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  markButtonPressed: {
+    opacity: 0.8,
+  },
+  markButtonText: {
+    color: AppColors.white,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  juzSection: {
+    paddingTop: 16,
+  },
+  bottomSpacer: {
+    height: 20,
   },
 });
