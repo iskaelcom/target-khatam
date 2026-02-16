@@ -4,9 +4,13 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useProgress } from '@/context/ProgressContext';
 import { checkBackupStatus, clearToken, getToken, getUserEmail, performBackup, performRestore, saveToken } from '@/services/googleDrive';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { makeRedirectUri } from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function CloudBackupSection() {
     const { t } = useLanguage();
@@ -18,9 +22,20 @@ export default function CloudBackupSection() {
     const [lastBackupDate, setLastBackupDate] = useState<string | null>(null);
     const [userEmail, setUserEmail] = useState<string | null>(null);
 
+    const redirectUri = makeRedirectUri({
+        scheme: 'targetkhatam',
+    });
+
+    // Log redirect URI so you can add it to Google Cloud Console
+    useEffect(() => {
+        console.log('[Google Auth] Redirect URI:', redirectUri);
+        console.log('[Google Auth] Add this URI to Google Cloud Console > OAuth 2.0 Client > Authorized redirect URIs');
+    }, [redirectUri]);
+
     const [request, response, promptAsync] = Google.useAuthRequest({
         webClientId: GOOGLE_WEB_CLIENT_ID,
         scopes: ['https://www.googleapis.com/auth/drive.appdata'],
+        redirectUri,
     });
 
     // Check for saved token on mount
