@@ -15,6 +15,17 @@ export interface AppSettings {
   target?: TargetSettings;   // Optional target settings
 }
 
+export interface KhatamCompletion {
+  id: string;           // Unique ID (timestamp)
+  completedAt: string;  // ISO date string
+  totalDays: number;    // Days taken for this khatam
+}
+
+export interface KhatamHistory {
+  completions: KhatamCompletion[];
+  totalCount: number;
+}
+
 export interface JuzDefinition {
   id: number;
   nameAr: string;

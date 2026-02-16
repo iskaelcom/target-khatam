@@ -1,8 +1,9 @@
 import { JUZ_DATA, TOTAL_PAGES } from '@/constants/quranData';
-import { clearAllData, getDailyLog, getReadPages, getSettings, saveDailyLog, saveReadPages, saveSettings } from '@/services/storage';
-import { DailyLog, JuzProgress, OverallProgress, ReadPages, TargetSettings } from '@/types';
+import { addKhatamCompletion, clearAllData, getDailyLog, getKhatamHistory, getReadPages, getSettings, saveDailyLog, saveReadPages, saveSettings } from '@/services/storage';
+import { DailyLog, JuzProgress, KhatamCompletion, KhatamHistory, OverallProgress, ReadPages, TargetSettings } from '@/types';
 import { getJuzProgress, getOverallProgress } from '@/utils/progress';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { Alert } from 'react-native';
 
 function getTodayKey(): string {
   const now = new Date();
@@ -22,10 +23,12 @@ interface ProgressContextType {
   targetSettings: TargetSettings;
   dailyTarget: number | null;
   daysRemaining: number | null;
+  khatamHistory: KhatamHistory;
   togglePage: (page: number) => void;
   markUpToPage: (page: number) => void;
   markJuz: (juzId: number, markAs: 'read' | 'unread') => void;
   updateTargetSettings: (settings: TargetSettings) => Promise<void>;
+  startNewKhatam: () => Promise<void>;
   resetAll: () => Promise<void>;
 }
 
@@ -41,14 +44,22 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     khatamPerMonth: 2,
     startDate: '',
   });
+  const [khatamHistory, setKhatamHistory] = useState<KhatamHistory>({ completions: [], totalCount: 0 });
   const [isLoading, setIsLoading] = useState(true);
+  const [lastCompletionCheck, setLastCompletionCheck] = useState(0);
+  const isCompletingRef = useRef(false);
   const dailyLogRef = useRef<DailyLog>({});
 
   useEffect(() => {
-    Promise.all([getReadPages(), getDailyLog(), getSettings()]).then(([pages, log, settings]) => {
+    Promise.all([getReadPages(), getDailyLog(), getSettings(), getKhatamHistory()]).then(([pages, log, settings, history]) => {
       setReadPages(pages);
       setDailyLog(log);
       dailyLogRef.current = log;
+      setKhatamHistory(history);
+      // If already at 604 pages, prevent re-triggering khatam completion on app load
+      if (pages.length >= TOTAL_PAGES) {
+        setLastCompletionCheck(TOTAL_PAGES);
+      }
       if (settings.target) {
         setTargetSettings(settings.target);
       }
@@ -142,6 +153,45 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     await saveSettings(appSettings);
   }, []);
 
+  const handleKhatamCompletion = useCallback(async () => {
+    // Guard against double-firing (React StrictMode / effect re-runs)
+    if (isCompletingRef.current) return;
+    isCompletingRef.current = true;
+
+    // Calculate total days - use earliest date from daily log or just use today
+    const logDates = Object.keys(dailyLog).sort();
+    const firstDate = logDates.length > 0 ? new Date(logDates[0]) : new Date();
+    const today = new Date();
+    const daysDiff = Math.ceil((today.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24));
+    const totalDays = Math.max(1, daysDiff);
+
+    const completion: KhatamCompletion = {
+      id: Date.now().toString(),
+      completedAt: new Date().toISOString(),
+      totalDays,
+    };
+
+    await addKhatamCompletion(completion);
+    const updatedHistory = await getKhatamHistory();
+    setKhatamHistory(updatedHistory);
+
+    isCompletingRef.current = false;
+
+    // Show celebration
+    Alert.alert(
+      '🎉 Selamat! / Congratulations!',
+      `Anda telah menyelesaikan khatam!\nYou have completed reading the entire Quran!\n\nTotal: ${totalDays} hari / days`,
+      [{ text: 'Alhamdulillah' }]
+    );
+  }, [dailyLog]);
+
+  const startNewKhatam = useCallback(async () => {
+    setReadPages([]);
+    setLastCompletionCheck(0);
+    isCompletingRef.current = false;
+    await saveReadPages([]);
+  }, []);
+
   const resetAll = useCallback(async () => {
     await clearAllData();
     setReadPages([]);
@@ -199,6 +249,17 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     return Math.ceil(remaining / daysLeft);
   }, [targetSettings, targetTotalPages, overallProgress.pagesRead, daysRemaining]);
 
+  // Khatam completion detection - runs after overallProgress is calculated
+  useEffect(() => {
+    if (overallProgress.pagesRead === TOTAL_PAGES && overallProgress.pagesRead !== lastCompletionCheck) {
+      // Just completed khatam!
+      handleKhatamCompletion();
+      setLastCompletionCheck(TOTAL_PAGES);
+    } else if (overallProgress.pagesRead < TOTAL_PAGES) {
+      setLastCompletionCheck(0); // Reset for next khatam
+    }
+  }, [overallProgress.pagesRead, lastCompletionCheck, handleKhatamCompletion]);
+
   return (
     <ProgressContext.Provider
       value={{
@@ -211,10 +272,12 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
         targetSettings,
         dailyTarget,
         daysRemaining,
+        khatamHistory,
         togglePage,
         markUpToPage,
         markJuz,
         updateTargetSettings,
+        startNewKhatam,
         resetAll,
       }}>
       {children}

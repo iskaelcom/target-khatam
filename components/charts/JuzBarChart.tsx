@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { Platform, View, Text, StyleSheet, ScrollView } from 'react-native';
 import { BarChart } from 'react-native-gifted-charts';
 import { JuzProgress } from '@/types';
 import { getBarColor } from '@/utils/progress';
@@ -32,7 +32,7 @@ export default function JuzBarChart({ juzProgress }: JuzBarChartProps) {
           yAxisLabelSuffix="%"
           yAxisTextStyle={styles.yAxisText}
           xAxisLabelTextStyle={styles.xAxisText}
-          isAnimated
+          isAnimated={Platform.OS !== 'web'}
           barBorderRadius={3}
           height={180}
           yAxisColor={AppColors.inactive}

@@ -90,6 +90,17 @@ export const en = {
     },
     customKhatam: 'Custom khatam/month',
   },
+  history: {
+    title: 'Khatam History',
+    totalKhatam: 'Total Khatam',
+    completedOn: 'Completed on',
+    daysTaken: 'days',
+    noHistory: 'No khatam completed yet',
+    congratulations: 'Congratulations!',
+    completionMessage: 'You have completed reading the entire Quran!',
+    startAgain: 'Start Again',
+    startAgainConfirm: 'Start a new khatam? Your reading progress will be reset but khatam history will be preserved.',
+  },
 };
 
 export type Translations = typeof en;

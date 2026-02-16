@@ -92,4 +92,15 @@ export const id: Translations = {
     },
     customKhatam: 'Khatam kustom',
   },
+  history: {
+    title: 'Riwayat Khatam',
+    totalKhatam: 'Total Khatam',
+    completedOn: 'Selesai pada',
+    daysTaken: 'hari',
+    noHistory: 'Belum ada khatam yang diselesaikan',
+    congratulations: 'Selamat!',
+    completionMessage: 'Anda telah menyelesaikan membaca seluruh Al-Quran!',
+    startAgain: 'Mulai Lagi',
+    startAgainConfirm: 'Mulai khatam baru? Progres bacaan akan direset tetapi riwayat khatam tetap tersimpan.',
+  },
 };

@@ -2,6 +2,7 @@ import DonutChart from '@/components/charts/DonutChart';
 import DailyRecap from '@/components/DailyRecap';
 import DailyTargetCard from '@/components/DailyTargetCard';
 import JuzCard from '@/components/JuzCard';
+import KhatamHistoryCard from '@/components/KhatamHistoryCard';
 import { AppColors } from '@/constants/Colors';
 import { TOTAL_PAGES } from '@/constants/quranData';
 import { useLanguage } from '@/context/LanguageContext';
@@ -21,9 +22,26 @@ function getMotivation(percentage: number, t: Translations) {
 }
 
 export default function HomeScreen() {
-  const { overallProgress, juzProgress, isLoading, markUpToPage } = useProgress();
+  const { overallProgress, juzProgress, isLoading, markUpToPage, startNewKhatam } = useProgress();
   const { t } = useLanguage();
   const [pageInput, setPageInput] = useState('');
+
+  const handleStartAgain = useCallback(() => {
+    if (Platform.OS === 'web') {
+      if (window.confirm(t.history.startAgainConfirm)) {
+        startNewKhatam();
+      }
+    } else {
+      Alert.alert(
+        t.history.startAgain,
+        t.history.startAgainConfirm,
+        [
+          { text: t.common.cancel, style: 'cancel' },
+          { text: t.common.confirm, onPress: () => startNewKhatam() },
+        ]
+      );
+    }
+  }, [t, startNewKhatam]);
 
   const handleMarkPage = useCallback(() => {
     const page = parseInt(pageInput, 10);
@@ -65,9 +83,19 @@ export default function HomeScreen() {
           <Text style={styles.motivation}>
             {getMotivation(overallProgress.percentage, t)}
           </Text>
+          {overallProgress.percentage === 100 && (
+            <Pressable
+              style={({ pressed }) => [styles.startAgainButton, pressed && styles.startAgainButtonPressed]}
+              onPress={handleStartAgain}
+            >
+              <MaterialCommunityIcons name="restart" size={20} color={AppColors.white} />
+              <Text style={styles.startAgainText}>{t.history.startAgain}</Text>
+            </Pressable>
+          )}
         </View>
 
         <DailyTargetCard />
+        <KhatamHistoryCard />
 
         <View style={styles.inputSection}>
           <Text style={styles.sectionTitle}>{t.home.manualInput}</Text>
@@ -152,6 +180,24 @@ const styles = StyleSheet.create({
     color: AppColors.secondary,
     fontWeight: '600',
     marginTop: 4,
+  },
+  startAgainButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: AppColors.primary,
+    borderRadius: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    marginTop: 16,
+  },
+  startAgainButtonPressed: {
+    opacity: 0.8,
+  },
+  startAgainText: {
+    color: AppColors.white,
+    fontSize: 16,
+    fontWeight: '600',
   },
   inputSection: {
     paddingTop: 16,

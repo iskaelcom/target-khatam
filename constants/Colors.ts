@@ -12,6 +12,7 @@ export const AppColors = {
   warning: '#F59E0B',
   inactive: '#E0E0E0',
   danger: '#DC2626',
+  gold: '#D4AF37',
   white: '#FFFFFF',
   tabBar: '#FFFFFF',
   tabBarBorder: '#E8E0D0',
