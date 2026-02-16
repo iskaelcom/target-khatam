@@ -1,3 +1,4 @@
+import CloudBackupSection from '@/components/CloudBackupSection';
 import LanguageToggle from '@/components/LanguageToggle';
 import TargetSettingsSection from '@/components/TargetSettingsSection';
 import { AppColors } from '@/constants/Colors';
@@ -42,6 +43,8 @@ export default function SettingsScreen() {
         <View style={styles.header}>
           <Text style={styles.title}>{t.settings.title}</Text>
         </View>
+
+        <CloudBackupSection />
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t.settings.language}</Text>

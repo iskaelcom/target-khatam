@@ -29,6 +29,7 @@ interface ProgressContextType {
   markJuz: (juzId: number, markAs: 'read' | 'unread') => void;
   updateTargetSettings: (settings: TargetSettings) => Promise<void>;
   startNewKhatam: () => Promise<void>;
+  reloadData: () => Promise<void>;
   resetAll: () => Promise<void>;
 }
 
@@ -192,6 +193,26 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     await saveReadPages([]);
   }, []);
 
+  const reloadData = useCallback(async () => {
+    setIsLoading(true);
+    const [pages, log, settings, history] = await Promise.all([
+      getReadPages(), getDailyLog(), getSettings(), getKhatamHistory()
+    ]);
+    setReadPages(pages);
+    setDailyLog(log);
+    dailyLogRef.current = log;
+    setKhatamHistory(history);
+    if (pages.length >= TOTAL_PAGES) {
+      setLastCompletionCheck(TOTAL_PAGES);
+    } else {
+      setLastCompletionCheck(0);
+    }
+    if (settings.target) {
+      setTargetSettings(settings.target);
+    }
+    setIsLoading(false);
+  }, []);
+
   const resetAll = useCallback(async () => {
     await clearAllData();
     setReadPages([]);
@@ -278,6 +299,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
         markJuz,
         updateTargetSettings,
         startNewKhatam,
+        reloadData,
         resetAll,
       }}>
       {children}

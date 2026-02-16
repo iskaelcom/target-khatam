@@ -102,6 +102,23 @@ export const en = {
     startAgainConfirm: 'Start a new khatam? Your reading progress will be reset but khatam history will be preserved.',
     viewHistory: 'View History',
   },
+  backup: {
+    title: 'Cloud Backup',
+    signIn: 'Sign in with Google',
+    signOut: 'Sign out',
+    connectedAs: 'Connected as',
+    lastBackup: 'Last backup',
+    noBackup: 'No backup found',
+    backupNow: 'Backup Now',
+    restore: 'Restore',
+    backupSuccess: 'Backup completed successfully!',
+    backupFailed: 'Backup failed. Please try again.',
+    restoreSuccess: 'Data restored successfully!',
+    restoreFailed: 'Restore failed. Please try again.',
+    restoreConfirm: 'This will replace all your current data with the backup. Are you sure?',
+    backingUp: 'Backing up...',
+    restoring: 'Restoring...',
+  },
 };
 
 export type Translations = typeof en;

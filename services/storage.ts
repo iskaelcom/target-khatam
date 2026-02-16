@@ -121,6 +121,20 @@ export async function addKhatamCompletion(completion: KhatamCompletion): Promise
   await saveKhatamHistory(history);
 }
 
+export async function restoreAllData(data: {
+  readPages: ReadPages;
+  settings: AppSettings;
+  dailyLog: DailyLog;
+  khatamHistory: KhatamHistory;
+}): Promise<void> {
+  await AsyncStorage.multiSet([
+    [KEYS.READ_PAGES, JSON.stringify(data.readPages)],
+    [KEYS.SETTINGS, JSON.stringify(data.settings)],
+    [KEYS.DAILY_LOG, JSON.stringify(data.dailyLog)],
+    [KEYS.KHATAM_HISTORY, JSON.stringify(data.khatamHistory)],
+  ]);
+}
+
 export async function clearAllData(): Promise<void> {
   await AsyncStorage.multiRemove([
     KEYS.READ_PAGES,
@@ -140,5 +154,6 @@ export default {
   getKhatamHistory,
   saveKhatamHistory,
   addKhatamCompletion,
+  restoreAllData,
   clearAllData
 };

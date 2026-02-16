@@ -50,3 +50,12 @@ export interface OverallProgress {
 
 // Key = date string "YYYY-MM-DD", Value = number of pages read that day
 export type DailyLog = Record<string, number>;
+
+export interface BackupData {
+  version: number;
+  createdAt: string;
+  readPages: ReadPages;
+  settings: AppSettings;
+  dailyLog: DailyLog;
+  khatamHistory: KhatamHistory;
+}
