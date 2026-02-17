@@ -1,4 +1,4 @@
-import { GOOGLE_WEB_CLIENT_ID } from '@/constants/google';
+import { GOOGLE_WEB_CLIENT_ID, GOOGLE_WEB_CLIENT_SECRET } from '@/constants/google';
 import { BackupData } from '@/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
@@ -71,6 +71,7 @@ export async function exchangeCodeForTokens(
   const params = new URLSearchParams({
     code,
     client_id: GOOGLE_WEB_CLIENT_ID,
+    client_secret: GOOGLE_WEB_CLIENT_SECRET,
     redirect_uri: redirectUri,
     grant_type: 'authorization_code',
   });
@@ -107,6 +108,7 @@ async function refreshAccessToken(): Promise<string | null> {
   const params = new URLSearchParams({
     refresh_token: tokenData.refreshToken,
     client_id: GOOGLE_WEB_CLIENT_ID,
+    client_secret: GOOGLE_WEB_CLIENT_SECRET,
     grant_type: 'refresh_token',
   });
 
