@@ -43,7 +43,7 @@ async function secureDelete(key: string): Promise<void> {
 
 // --- Token Management ---
 
-async function saveTokenData(data: TokenData): Promise<void> {
+export async function saveTokenData(data: TokenData): Promise<void> {
   await secureSet(TOKEN_KEY, JSON.stringify(data));
 }
 
@@ -65,16 +65,18 @@ async function getTokenData(): Promise<TokenData | null> {
 
 export async function exchangeCodeForTokens(
   code: string,
-  redirectUri: string,
+  redirectUri?: string,
   codeVerifier?: string
 ): Promise<TokenData> {
   const params = new URLSearchParams({
     code,
     client_id: GOOGLE_WEB_CLIENT_ID,
     client_secret: GOOGLE_WEB_CLIENT_SECRET,
-    redirect_uri: redirectUri,
     grant_type: 'authorization_code',
   });
+  if (redirectUri) {
+    params.append('redirect_uri', redirectUri);
+  }
   if (codeVerifier) {
     params.append('code_verifier', codeVerifier);
   }

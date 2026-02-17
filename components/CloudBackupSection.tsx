@@ -4,19 +4,36 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useProgress } from '@/context/ProgressContext';
 import { checkBackupStatus, clearToken, exchangeCodeForTokens, getValidToken, getUserEmail, performBackup, performRestore } from '@/services/googleDrive';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { makeRedirectUri, useAuthRequest, ResponseType } from 'expo-auth-session';
-import * as WebBrowser from 'expo-web-browser';
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
-WebBrowser.maybeCompleteAuthSession();
+// Platform-specific imports
+let GoogleSignin: any = null;
+let statusCodes: any = null;
+if (Platform.OS !== 'web') {
+    const gsi = require('@react-native-google-signin/google-signin');
+    GoogleSignin = gsi.GoogleSignin;
+    statusCodes = gsi.statusCodes;
+}
+
+// Web-only imports
+let makeRedirectUri: any = null;
+let useAuthRequest: any = null;
+let ResponseType: any = null;
+let WebBrowser: any = null;
+if (Platform.OS === 'web') {
+    const authSession = require('expo-auth-session');
+    makeRedirectUri = authSession.makeRedirectUri;
+    useAuthRequest = authSession.useAuthRequest;
+    ResponseType = authSession.ResponseType;
+    WebBrowser = require('expo-web-browser');
+    WebBrowser.maybeCompleteAuthSession();
+}
 
 const discovery = {
     authorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
     tokenEndpoint: 'https://oauth2.googleapis.com/token',
 };
-
-const redirectUri = makeRedirectUri();
 
 function showAlert(msg: string) {
     if (Platform.OS === 'web') {
@@ -24,6 +41,15 @@ function showAlert(msg: string) {
     } else {
         Alert.alert('', msg);
     }
+}
+
+// Configure native Google Sign-In
+if (GoogleSignin) {
+    GoogleSignin.configure({
+        webClientId: GOOGLE_WEB_CLIENT_ID,
+        scopes: ['https://www.googleapis.com/auth/drive.appdata'],
+        offlineAccess: true,
+    });
 }
 
 export default function CloudBackupSection() {
@@ -35,26 +61,6 @@ export default function CloudBackupSection() {
     const [loadingText, setLoadingText] = useState('');
     const [lastBackupDate, setLastBackupDate] = useState<string | null>(null);
     const [userEmail, setUserEmail] = useState<string | null>(null);
-
-    const [request, response, promptAsync] = useAuthRequest(
-        {
-            clientId: GOOGLE_WEB_CLIENT_ID,
-            scopes: ['https://www.googleapis.com/auth/drive.appdata', 'email'],
-            responseType: ResponseType.Code,
-            redirectUri,
-            usePKCE: true,
-            extraParams: {
-                access_type: 'offline',
-                prompt: 'consent',
-            },
-        },
-        discovery
-    );
-
-    // Log redirect URI for Google Cloud Console configuration
-    useEffect(() => {
-        console.log('[Google Auth] Redirect URI:', redirectUri);
-    }, []);
 
     // Check for saved token on mount
     useEffect(() => {
@@ -76,49 +82,48 @@ export default function CloudBackupSection() {
         })();
     }, []);
 
-    // Handle auth response - exchange code for tokens
-    useEffect(() => {
-        if (!response) return;
+    // --- Sign In Handler ---
+    const handleSignIn = useCallback(async () => {
+        if (Platform.OS !== 'web' && GoogleSignin) {
+            // Native Google Sign-In for Android/iOS
+            try {
+                await GoogleSignin.hasPlayServices();
+                const response = await GoogleSignin.signIn();
 
-        console.log('[Google Auth] Response type:', response.type);
+                if (response.type === 'cancelled') return;
 
-        if (response.type === 'error') {
-            console.error('[Google Auth] Error:', response.error);
-            showAlert(`Auth error: ${response.error?.message || 'Unknown error'}`);
-            return;
-        }
-
-        if (response.type === 'success' && response.params?.code) {
-            const code = response.params.code;
-            console.log('[Google Auth] Got code, exchanging for tokens...');
-            console.log('[Google Auth] Redirect URI for exchange:', redirectUri);
-
-            (async () => {
-                try {
-                    const tokenData = await exchangeCodeForTokens(
-                        code,
-                        redirectUri,
-                        request?.codeVerifier
-                    );
-                    console.log('[Google Auth] Token exchange success, has refresh:', !!tokenData.refreshToken);
-                    const email = await getUserEmail(tokenData.accessToken);
-                    setUserEmail(email);
-                    setIsSignedIn(true);
-                    const status = await checkBackupStatus(tokenData.accessToken);
-                    if (status.exists && status.lastModified) {
-                        setLastBackupDate(status.lastModified);
-                    }
-                } catch (e: any) {
-                    console.error('[Google Auth] Token exchange failed:', e);
-                    showAlert(`Sign in failed: ${e.message}`);
-                    await clearToken();
+                const serverAuthCode = response.data?.serverAuthCode;
+                if (!serverAuthCode) {
+                    showAlert('Sign in failed: no auth code received');
+                    return;
                 }
-            })();
+
+                // Exchange serverAuthCode for access + refresh tokens
+                const tokenData = await exchangeCodeForTokens(serverAuthCode);
+                const email = await getUserEmail(tokenData.accessToken);
+                setUserEmail(email);
+                setIsSignedIn(true);
+                const status = await checkBackupStatus(tokenData.accessToken);
+                if (status.exists && status.lastModified) {
+                    setLastBackupDate(status.lastModified);
+                }
+            } catch (e: any) {
+                if (e.code === statusCodes?.SIGN_IN_CANCELLED) return;
+                if (e.code === statusCodes?.IN_PROGRESS) return;
+                console.error('[Google Auth] Native sign-in failed:', e);
+                showAlert(`Sign in failed: ${e.message}`);
+            }
         }
-    }, [response, request]);
+        // Web sign-in is handled via promptAsync() directly on the button
+    }, []);
 
     const handleSignOut = useCallback(async () => {
         await clearToken();
+        if (Platform.OS !== 'web' && GoogleSignin) {
+            try {
+                await GoogleSignin.signOut();
+            } catch { /* ignore */ }
+        }
         setIsSignedIn(false);
         setUserEmail(null);
         setLastBackupDate(null);
@@ -196,14 +201,17 @@ export default function CloudBackupSection() {
             </View>
 
             {!isSignedIn ? (
-                <Pressable
-                    style={styles.googleButton}
-                    onPress={() => promptAsync()}
-                    disabled={!request}
-                >
-                    <MaterialCommunityIcons name="google" size={20} color="#4285F4" />
-                    <Text style={styles.googleButtonText}>{t.backup.signIn}</Text>
-                </Pressable>
+                Platform.OS === 'web' ? (
+                    <WebSignInButton t={t} />
+                ) : (
+                    <Pressable
+                        style={styles.googleButton}
+                        onPress={handleSignIn}
+                    >
+                        <MaterialCommunityIcons name="google" size={20} color="#4285F4" />
+                        <Text style={styles.googleButtonText}>{t.backup.signIn}</Text>
+                    </Pressable>
+                )
             ) : (
                 <View style={styles.content}>
                     <View style={styles.accountRow}>
@@ -256,6 +264,62 @@ export default function CloudBackupSection() {
                 </View>
             )}
         </View>
+    );
+}
+
+// Web-only sign-in component using expo-auth-session hooks
+function WebSignInButton({ t }: { t: any }) {
+    const redirectUri = makeRedirectUri();
+
+    const [request, response, promptAsync] = useAuthRequest(
+        {
+            clientId: GOOGLE_WEB_CLIENT_ID,
+            scopes: ['https://www.googleapis.com/auth/drive.appdata', 'email'],
+            responseType: ResponseType.Code,
+            redirectUri,
+            usePKCE: true,
+            extraParams: {
+                access_type: 'offline',
+                prompt: 'consent',
+            },
+        },
+        discovery
+    );
+
+    useEffect(() => {
+        console.log('[Google Auth] Redirect URI:', redirectUri);
+    }, [redirectUri]);
+
+    useEffect(() => {
+        if (!response) return;
+        if (response.type === 'error') {
+            showAlert(`Auth error: ${response.error?.message || 'Unknown error'}`);
+            return;
+        }
+        if (response.type === 'success' && response.params?.code) {
+            const code = response.params.code;
+            (async () => {
+                try {
+                    await exchangeCodeForTokens(code, redirectUri, request?.codeVerifier);
+                    // Reload the parent by triggering a re-mount
+                    window.location.reload();
+                } catch (e: any) {
+                    showAlert(`Sign in failed: ${e.message}`);
+                    await clearToken();
+                }
+            })();
+        }
+    }, [response, request, redirectUri]);
+
+    return (
+        <Pressable
+            style={styles.googleButton}
+            onPress={() => promptAsync()}
+            disabled={!request}
+        >
+            <MaterialCommunityIcons name="google" size={20} color="#4285F4" />
+            <Text style={styles.googleButtonText}>{t.backup.signIn}</Text>
+        </Pressable>
     );
 }
 
