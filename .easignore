@@ -40,6 +40,10 @@ yarn-error.*
 
 app-example
 
+# EAS local build artifacts
+*.apk
+*.aab
+
 # generated native folders
 /ios
 /android
