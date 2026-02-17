@@ -3,9 +3,11 @@ import React from 'react';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { AppColors } from '@/constants/Colors';
 import { useLanguage } from '@/context/LanguageContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
   const { t } = useLanguage();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
@@ -16,7 +18,8 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: AppColors.tabBar,
           borderTopColor: AppColors.tabBarBorder,
-          height: 56,
+          height: 56 + insets.bottom,
+          paddingBottom: insets.bottom,
         },
         tabBarLabelStyle: {
           fontSize: 10,
