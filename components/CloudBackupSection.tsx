@@ -2,8 +2,9 @@ import { GOOGLE_WEB_CLIENT_ID } from '@/constants/google';
 import { AppColors } from '@/constants/Colors';
 import { useLanguage } from '@/context/LanguageContext';
 import { useProgress } from '@/context/ProgressContext';
-import { checkBackupStatus, clearToken, getToken, getUserEmail, performBackup, performRestore, saveToken } from '@/services/googleDrive';
+import { checkBackupStatus, clearToken, exchangeCodeForTokens, getValidToken, getUserEmail, performBackup, performRestore } from '@/services/googleDrive';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { ResponseType } from 'expo-auth-session';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -24,20 +25,17 @@ export default function CloudBackupSection() {
     const [request, response, promptAsync] = Google.useAuthRequest({
         webClientId: GOOGLE_WEB_CLIENT_ID,
         scopes: ['https://www.googleapis.com/auth/drive.appdata'],
+        responseType: ResponseType.Code,
+        extraParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+        },
     });
-
-    // Log the actual redirect URI for Google Cloud Console configuration
-    useEffect(() => {
-        if (request?.url) {
-            const url = new URL(request.url);
-            console.log('[Google Auth] Redirect URI:', url.searchParams.get('redirect_uri'));
-        }
-    }, [request]);
 
     // Check for saved token on mount
     useEffect(() => {
         (async () => {
-            const token = await getToken();
+            const token = await getValidToken();
             if (token) {
                 try {
                     const email = await getUserEmail(token);
@@ -48,33 +46,38 @@ export default function CloudBackupSection() {
                         setLastBackupDate(status.lastModified);
                     }
                 } catch {
-                    // Token expired, clear it
+                    // Token expired and refresh failed
                     await clearToken();
                 }
             }
         })();
     }, []);
 
-    // Handle auth response
+    // Handle auth response - exchange code for tokens
     useEffect(() => {
-        if (response?.type === 'success' && response.authentication?.accessToken) {
-            const token = response.authentication.accessToken;
+        if (response?.type === 'success' && response.params?.code) {
+            const code = response.params.code;
             (async () => {
                 try {
-                    await saveToken(token);
-                    const email = await getUserEmail(token);
+                    const tokenData = await exchangeCodeForTokens(
+                        code,
+                        request?.redirectUri || '',
+                        request?.codeVerifier
+                    );
+                    const email = await getUserEmail(tokenData.accessToken);
                     setUserEmail(email);
                     setIsSignedIn(true);
-                    const status = await checkBackupStatus(token);
+                    const status = await checkBackupStatus(tokenData.accessToken);
                     if (status.exists && status.lastModified) {
                         setLastBackupDate(status.lastModified);
                     }
-                } catch {
+                } catch (e) {
+                    console.error('[Google Auth] Token exchange failed:', e);
                     await clearToken();
                 }
             })();
         }
-    }, [response]);
+    }, [response, request]);
 
     const handleSignOut = useCallback(async () => {
         await clearToken();
@@ -87,7 +90,7 @@ export default function CloudBackupSection() {
         setIsLoading(true);
         setLoadingText(t.backup.backingUp);
         try {
-            const token = await getToken();
+            const token = await getValidToken();
             if (!token) throw new Error('TOKEN_EXPIRED');
             await performBackup(token);
             setLastBackupDate(new Date().toISOString());
@@ -115,7 +118,7 @@ export default function CloudBackupSection() {
         setIsLoading(true);
         setLoadingText(t.backup.restoring);
         try {
-            const token = await getToken();
+            const token = await getValidToken();
             if (!token) throw new Error('TOKEN_EXPIRED');
             await performRestore(token);
             await reloadData();

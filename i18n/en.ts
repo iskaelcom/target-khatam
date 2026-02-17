@@ -20,6 +20,8 @@ export const en = {
     inputPlaceholder: 'Page number (1-604)',
     markRead: 'Mark',
     invalidPage: 'Enter a number between 1 and 604',
+    lastPageRead: 'Last page read',
+    noPageRead: 'No pages read yet',
     motivation: {
       zero: 'Start your journey today!',
       low: 'Great start! Keep going!',

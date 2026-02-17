@@ -22,6 +22,8 @@ export const id: Translations = {
     inputPlaceholder: 'Nomor halaman (1-604)',
     markRead: 'Tandai',
     invalidPage: 'Masukkan angka antara 1 dan 604',
+    lastPageRead: 'Terakhir dibaca halaman',
+    noPageRead: 'Belum ada halaman dibaca',
     motivation: {
       zero: 'Mulai perjalananmu hari ini!',
       low: 'Awal yang baik! Terus semangat!',

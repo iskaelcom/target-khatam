@@ -1,3 +1,4 @@
+import { GOOGLE_WEB_CLIENT_ID } from '@/constants/google';
 import { BackupData } from '@/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
@@ -7,7 +8,15 @@ import { getDailyLog, getKhatamHistory, getReadPages, getSettings, restoreAllDat
 const BACKUP_FILENAME = 'target-khatam-backup.json';
 const TOKEN_KEY = '@target-khatam/google-token';
 
-// --- Token Management ---
+// --- Types ---
+
+interface TokenData {
+  accessToken: string;
+  refreshToken?: string;
+  expiresAt: number;
+}
+
+// --- Secure Storage ---
 
 async function secureSet(key: string, value: string): Promise<void> {
   if (Platform.OS === 'web') {
@@ -32,12 +41,116 @@ async function secureDelete(key: string): Promise<void> {
   }
 }
 
-export async function saveToken(accessToken: string): Promise<void> {
-  await secureSet(TOKEN_KEY, accessToken);
+// --- Token Management ---
+
+async function saveTokenData(data: TokenData): Promise<void> {
+  await secureSet(TOKEN_KEY, JSON.stringify(data));
 }
 
-export async function getToken(): Promise<string | null> {
-  return secureGet(TOKEN_KEY);
+async function getTokenData(): Promise<TokenData | null> {
+  const raw = await secureGet(TOKEN_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    // Handle legacy format (plain string token from old version)
+    if (typeof parsed === 'string') {
+      return { accessToken: parsed, expiresAt: 0 };
+    }
+    return parsed;
+  } catch {
+    // Might be a plain token string from old version
+    return { accessToken: raw, expiresAt: 0 };
+  }
+}
+
+export async function exchangeCodeForTokens(
+  code: string,
+  redirectUri: string,
+  codeVerifier?: string
+): Promise<TokenData> {
+  const params = new URLSearchParams({
+    code,
+    client_id: GOOGLE_WEB_CLIENT_ID,
+    redirect_uri: redirectUri,
+    grant_type: 'authorization_code',
+  });
+  if (codeVerifier) {
+    params.append('code_verifier', codeVerifier);
+  }
+
+  const res = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: params.toString(),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Token exchange failed: ${res.status} ${err}`);
+  }
+
+  const data = await res.json();
+  const tokenData: TokenData = {
+    accessToken: data.access_token,
+    refreshToken: data.refresh_token,
+    expiresAt: Date.now() + data.expires_in * 1000,
+  };
+
+  await saveTokenData(tokenData);
+  return tokenData;
+}
+
+async function refreshAccessToken(): Promise<string | null> {
+  const tokenData = await getTokenData();
+  if (!tokenData?.refreshToken) return null;
+
+  const params = new URLSearchParams({
+    refresh_token: tokenData.refreshToken,
+    client_id: GOOGLE_WEB_CLIENT_ID,
+    grant_type: 'refresh_token',
+  });
+
+  const res = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: params.toString(),
+  });
+
+  if (!res.ok) return null;
+
+  const data = await res.json();
+  const newTokenData: TokenData = {
+    accessToken: data.access_token,
+    refreshToken: tokenData.refreshToken, // Google doesn't return new refresh token
+    expiresAt: Date.now() + data.expires_in * 1000,
+  };
+
+  await saveTokenData(newTokenData);
+  return newTokenData.accessToken;
+}
+
+export async function getValidToken(): Promise<string | null> {
+  const tokenData = await getTokenData();
+  if (!tokenData) return null;
+
+  // If token still valid (with 5-minute buffer)
+  if (tokenData.expiresAt > 0 && Date.now() < tokenData.expiresAt - 5 * 60 * 1000) {
+    return tokenData.accessToken;
+  }
+
+  // Try refresh
+  const refreshed = await refreshAccessToken();
+  if (refreshed) return refreshed;
+
+  // If no refresh token but access token exists, try using it anyway
+  // (might still work for legacy tokens or tokens near expiry)
+  if (tokenData.accessToken && tokenData.expiresAt === 0) {
+    return tokenData.accessToken;
+  }
+
+  // Token expired and no refresh available
+  await clearToken();
+  return null;
 }
 
 export async function clearToken(): Promise<void> {

@@ -22,7 +22,7 @@ function getMotivation(percentage: number, t: Translations) {
 }
 
 export default function HomeScreen() {
-  const { overallProgress, juzProgress, isLoading, markUpToPage, startNewKhatam, khatamHistory } = useProgress();
+  const { readPages, overallProgress, juzProgress, isLoading, markUpToPage, startNewKhatam, khatamHistory } = useProgress();
   const { t } = useLanguage();
   const [pageInput, setPageInput] = useState('');
 
@@ -125,6 +125,14 @@ export default function HomeScreen() {
               <Text style={styles.markButtonText}>{t.home.markRead}</Text>
             </Pressable>
           </View>
+          {readPages.length > 0 && (
+            <View style={styles.lastPageInfo}>
+              <MaterialCommunityIcons name="bookmark-check" size={16} color={AppColors.secondary} />
+              <Text style={styles.lastPageText}>
+                {t.home.lastPageRead}: <Text style={styles.lastPageNumber}>{readPages[readPages.length - 1]}</Text>
+              </Text>
+            </View>
+          )}
         </View>
 
         <DailyTargetCard />
@@ -266,6 +274,22 @@ const styles = StyleSheet.create({
     color: AppColors.white,
     fontSize: 13,
     fontWeight: '600',
+  },
+  lastPageInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginHorizontal: 20,
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  lastPageText: {
+    fontSize: 13,
+    color: AppColors.textSecondary,
+  },
+  lastPageNumber: {
+    fontWeight: '700',
+    color: AppColors.primary,
   },
   juzSection: {
     paddingTop: 16,
