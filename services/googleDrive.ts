@@ -6,7 +6,7 @@ import { Platform } from 'react-native';
 import { getDailyLog, getKhatamHistory, getReadPages, getSettings, restoreAllData } from './storage';
 
 const BACKUP_FILENAME = 'target-khatam-backup.json';
-const TOKEN_KEY = '@target-khatam/google-token';
+const TOKEN_KEY = 'target-khatam-google-token';
 
 // --- Types ---
 

@@ -1,7 +1,6 @@
 import DonutChart from '@/components/charts/DonutChart';
 import DailyRecap from '@/components/DailyRecap';
 import DailyTargetCard from '@/components/DailyTargetCard';
-import JuzCard from '@/components/JuzCard';
 import KhatamHistoryCard from '@/components/KhatamHistoryCard';
 import { AppColors } from '@/constants/Colors';
 import { TOTAL_PAGES } from '@/constants/quranData';
@@ -22,7 +21,7 @@ function getMotivation(percentage: number, t: Translations) {
 }
 
 export default function HomeScreen() {
-  const { readPages, overallProgress, juzProgress, isLoading, markUpToPage, startNewKhatam, khatamHistory } = useProgress();
+  const { readPages, overallProgress, isLoading, markUpToPage, startNewKhatam, khatamHistory } = useProgress();
   const { t } = useLanguage();
   const [pageInput, setPageInput] = useState('');
 
@@ -139,13 +138,6 @@ export default function HomeScreen() {
         <KhatamHistoryCard />
 
         <DailyRecap />
-
-        <View style={styles.juzSection}>
-          <Text style={styles.sectionTitle}>{t.home.juzOverview}</Text>
-          {juzProgress.map((jp) => (
-            <JuzCard key={jp.juz.id} juzProgress={jp} />
-          ))}
-        </View>
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
@@ -290,9 +282,6 @@ const styles = StyleSheet.create({
   lastPageNumber: {
     fontWeight: '700',
     color: AppColors.primary,
-  },
-  juzSection: {
-    paddingTop: 16,
   },
   bottomSpacer: {
     height: 20,
