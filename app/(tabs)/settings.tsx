@@ -5,6 +5,7 @@ import { AppColors } from '@/constants/Colors';
 import { useLanguage } from '@/context/LanguageContext';
 import { useProgress } from '@/context/ProgressContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function SettingsScreen() {
   const { overallProgress, juzProgress, resetAll } = useProgress();
   const { t } = useLanguage();
+  const router = useRouter();
 
   const juzCompleted = juzProgress.filter((jp) => jp.percentage === 100).length;
 
@@ -82,6 +84,11 @@ export default function SettingsScreen() {
           <Text style={styles.sectionTitle}>{t.settings.about}</Text>
           <Text style={styles.aboutText}>{t.settings.aboutText}</Text>
           <Text style={styles.versionText}>{t.settings.version} 1.0.0</Text>
+          <Pressable style={styles.privacyLink} onPress={() => router.push('/privacy-policy')}>
+            <MaterialCommunityIcons name="shield-check-outline" size={18} color={AppColors.primary} />
+            <Text style={styles.privacyLinkText}>{t.privacy.title}</Text>
+            <MaterialCommunityIcons name="chevron-right" size={18} color={AppColors.textSecondary} />
+          </Pressable>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -167,5 +174,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: AppColors.textSecondary,
     marginTop: 8,
+  },
+  privacyLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    backgroundColor: AppColors.card,
+    borderRadius: 10,
+  },
+  privacyLinkText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '500',
+    color: AppColors.primary,
   },
 });
