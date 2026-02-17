@@ -10,10 +10,18 @@ export default function PrivacyPolicyScreen() {
   const { t } = useLanguage();
   const router = useRouter();
 
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
+        <Pressable onPress={handleBack} style={styles.backButton}>
           <MaterialCommunityIcons name="arrow-left" size={24} color={AppColors.primary} />
         </Pressable>
         <Text style={styles.title}>{t.privacy.title}</Text>

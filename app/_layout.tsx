@@ -20,6 +20,8 @@ export default function RootLayout() {
               presentation: 'card',
             }}
           />
+          <Stack.Screen name="privacy-policy" options={{ headerShown: false }} />
+          <Stack.Screen name="delete-account" options={{ headerShown: false }} />
         </Stack>
         <StatusBar style="dark" />
       </ProgressProvider>
