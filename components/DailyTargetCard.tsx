@@ -24,14 +24,14 @@ export default function DailyTargetCard() {
         statusIcon = 'clock-alert-outline';
         statusText = t.target.targetEnded;
         statusColor = AppColors.warning;
-    } else if (todayPages >= dailyTarget) {
+    } else if (todayPages > dailyTarget) {
         statusIcon = 'check-circle';
         statusText = t.target.ahead;
         statusColor = AppColors.success;
-    } else if (todayPages >= dailyTarget * 0.7) {
-        statusIcon = 'progress-check';
+    } else if (todayPages === dailyTarget) {
+        statusIcon = 'check-circle';
         statusText = t.target.onTrack;
-        statusColor = AppColors.primary;
+        statusColor = AppColors.success;
     } else {
         statusIcon = 'alert-circle-outline';
         statusText = t.target.behind;

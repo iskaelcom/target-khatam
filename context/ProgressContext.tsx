@@ -228,9 +228,10 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
   // Calculate effective target days and total pages based on mode
   const { effectiveTargetDays, targetTotalPages } = useMemo(() => {
     if (targetSettings.mode === 'khatam_per_month') {
+      const daysPerKhatam = Math.floor(30 / targetSettings.khatamPerMonth);
       return {
-        effectiveTargetDays: 30, // Fixed 30 days for monthly cycle
-        targetTotalPages: TOTAL_PAGES * targetSettings.khatamPerMonth,
+        effectiveTargetDays: daysPerKhatam,
+        targetTotalPages: TOTAL_PAGES, // Single khatam, cycle is shorter
       };
     }
     return {
