@@ -262,14 +262,16 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     return Math.max(0, remaining);
   }, [targetSettings, effectiveTargetDays]);
 
-  // Calculate daily target
+  // Calculate daily target based on pages remaining at the START of today
+  // This keeps the target stable throughout the day as the user reads
   const dailyTarget = useMemo(() => {
     if (!targetSettings.enabled || !targetSettings.startDate || daysRemaining === null) return null;
 
-    const remaining = targetTotalPages - overallProgress.pagesRead;
+    const pagesReadBeforeToday = overallProgress.pagesRead - todayPages;
+    const remaining = targetTotalPages - pagesReadBeforeToday;
     const daysLeft = daysRemaining || 1;
     return Math.ceil(remaining / daysLeft);
-  }, [targetSettings, targetTotalPages, overallProgress.pagesRead, daysRemaining]);
+  }, [targetSettings, targetTotalPages, overallProgress.pagesRead, todayPages, daysRemaining]);
 
   // Khatam completion detection - runs after overallProgress is calculated
   useEffect(() => {
