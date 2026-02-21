@@ -33,8 +33,9 @@ export default function DailyTargetCard() {
         statusText = t.target.onTrack;
         statusColor = AppColors.success;
     } else {
+        const pagesLeft = dailyTarget - todayPages;
         statusIcon = 'alert-circle-outline';
-        statusText = t.target.behind;
+        statusText = `${t.target.behind} (${pagesLeft} ${t.target.pagesRemaining})`;
         statusColor = AppColors.warning;
     }
 

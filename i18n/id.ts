@@ -70,6 +70,7 @@ export const id: Translations = {
     targetDays: 'Target Penyelesaian',
     pagesPerDay: 'hal/hari',
     daysRemaining: 'hari tersisa',
+    pagesRemaining: 'halaman lagi',
     todayProgress: 'Progress Hari Ini',
     onTrack: 'Sesuai target!',
     behind: 'Tertinggal',

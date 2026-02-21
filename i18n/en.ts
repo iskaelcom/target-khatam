@@ -68,6 +68,7 @@ export const en = {
     targetDays: 'Target Completion',
     pagesPerDay: 'pages/day',
     daysRemaining: 'days left',
+    pagesRemaining: 'pages left',
     todayProgress: "Today's Progress",
     onTrack: 'On track!',
     behind: 'Behind schedule',
