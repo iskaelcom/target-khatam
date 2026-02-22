@@ -73,7 +73,7 @@ export default function DailyRecap() {
     return { maxPages: max, totalPeriod: total };
   }, [dailyLog, days]);
 
-  const showEveryNthLabel = period === 30 ? 5 : period === 14 ? 2 : 1;
+  const showEveryNthLabel = 1;
   const scrollRef = useRef<ScrollViewType>(null);
 
   const handleContentSizeChange = useCallback((contentWidth: number) => {
