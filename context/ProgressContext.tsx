@@ -161,8 +161,9 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
 
     // Calculate total days - use earliest date from daily log or just use today
     const logDates = Object.keys(dailyLog).sort();
-    const firstDate = logDates.length > 0 ? new Date(logDates[0]) : new Date();
+    const firstDate = logDates.length > 0 ? new Date(logDates[0] + 'T00:00:00') : new Date();
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const daysDiff = Math.ceil((today.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24));
     const totalDays = Math.max(1, daysDiff);
 
@@ -244,8 +245,9 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
   const daysRemaining = useMemo(() => {
     if (!targetSettings.enabled || !targetSettings.startDate) return null;
 
-    const start = new Date(targetSettings.startDate);
+    const start = new Date(targetSettings.startDate + 'T00:00:00');
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const diffTime = today.getTime() - start.getTime();
     const daysPassed = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
