@@ -92,6 +92,8 @@ export const en = {
       thrice: '3x',
     },
     customKhatam: 'Custom khatam/month',
+    upToPage: 'up to p.',
+    untilDate: 'until',
   },
   history: {
     title: 'Khatam History',

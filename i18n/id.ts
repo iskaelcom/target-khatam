@@ -94,6 +94,8 @@ export const id: Translations = {
       thrice: '3x',
     },
     customKhatam: 'Khatam kustom',
+    upToPage: 's/d hal.',
+    untilDate: 's/d tgl.',
   },
   history: {
     title: 'Riwayat Khatam',

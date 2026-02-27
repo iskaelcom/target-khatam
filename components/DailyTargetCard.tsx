@@ -7,7 +7,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 export default function DailyTargetCard() {
-    const { targetSettings, dailyTarget, daysRemaining, todayPages } = useProgress();
+    const { targetSettings, dailyTarget, daysRemaining, todayPages, overallProgress } = useProgress();
     const { t } = useLanguage();
 
     // Don't show if target is disabled or not configured
@@ -41,6 +41,17 @@ export default function DailyTargetCard() {
 
     const progressPercentage = dailyTarget > 0 ? Math.round(Math.min((todayPages / dailyTarget) * 100, 100)) : 0;
 
+    // Target page for today
+    const pagesReadBeforeToday = overallProgress.pagesRead - todayPages;
+    const targetPage = Math.min(pagesReadBeforeToday + dailyTarget, 604);
+
+    // End date = today + daysRemaining
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const endDate = new Date(today);
+    endDate.setDate(today.getDate() + (daysRemaining ?? 0));
+    const endDateStr = endDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+
     // Generate mode description
     const modeDescription = targetSettings.mode === 'days'
         ? `Target Khatam dalam ${targetSettings.targetDays} ${t.target.presets.week.includes('Days') ? 'Days' : 'Hari'}`
@@ -72,11 +83,13 @@ export default function DailyTargetCard() {
                     <View style={styles.statItem}>
                         <Text style={styles.statNumber}>{dailyTarget}</Text>
                         <Text style={styles.statLabel}>{t.target.pagesPerDay}</Text>
+                        <Text style={styles.statSubInfo}>{t.target.upToPage} {targetPage}</Text>
                     </View>
                     <View style={styles.statDivider} />
                     <View style={styles.statItem}>
                         <Text style={styles.statNumber}>{daysRemaining}</Text>
                         <Text style={styles.statLabel}>{t.target.daysRemaining}</Text>
+                        <Text style={styles.statSubInfo}>{t.target.untilDate} {endDateStr}</Text>
                     </View>
                 </View>
             </View>
@@ -152,6 +165,13 @@ const styles = StyleSheet.create({
         color: AppColors.textSecondary,
         marginTop: 4,
         textAlign: 'center',
+    },
+    statSubInfo: {
+        fontSize: 11,
+        color: AppColors.secondary,
+        marginTop: 2,
+        textAlign: 'center',
+        opacity: 0.75,
     },
     statDivider: {
         height: 1,
