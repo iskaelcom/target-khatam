@@ -87,7 +87,7 @@ export default function DailyTargetCard() {
                         percentage={progressPercentage}
                         pagesRead={todayPages}
                         totalPages={dailyTarget}
-                        size={60}
+                        size={75}
                     />
                 </View>
 
