@@ -45,12 +45,17 @@ export default function DailyTargetCard() {
     const pagesReadBeforeToday = overallProgress.pagesRead - todayPages;
     const targetPage = Math.min(pagesReadBeforeToday + dailyTarget, 604);
 
-    // End date = today + daysRemaining
+    // End date — for target_date mode use the stored date directly; for others derive from daysRemaining
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const endDate = new Date(today);
-    endDate.setDate(today.getDate() + (daysRemaining ?? 0));
-    const endDateStr = endDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    let endDateStr: string;
+    if (targetSettings.mode === 'target_date' && targetSettings.targetDate) {
+        endDateStr = new Date(targetSettings.targetDate + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    } else {
+        const endDate = new Date(today);
+        endDate.setDate(today.getDate() + (daysRemaining ?? 0));
+        endDateStr = endDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
 
     // Generate mode description
     let modeDescription: string;

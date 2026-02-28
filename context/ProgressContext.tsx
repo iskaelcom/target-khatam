@@ -260,7 +260,8 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
 
     if (targetSettings.mode === 'target_date' && targetSettings.targetDate) {
       const end = new Date(targetSettings.targetDate + 'T00:00:00');
-      const remaining = Math.floor((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      // +1 to include today as a reading day (Mar 30 target from Feb 28 = 31 days, not 30)
+      const remaining = Math.floor((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)) + 1;
       return Math.max(0, remaining);
     }
 
