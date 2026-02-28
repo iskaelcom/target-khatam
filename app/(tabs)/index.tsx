@@ -22,7 +22,7 @@ function getMotivation(percentage: number, t: Translations) {
 
 export default function HomeScreen() {
   const { readPages, overallProgress, isLoading, markUpToPage, startNewKhatam, khatamHistory } = useProgress();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [pageInput, setPageInput] = useState('');
 
   const handleStartAgain = useCallback(() => {
@@ -138,6 +138,20 @@ export default function HomeScreen() {
         <KhatamHistoryCard />
 
         <DailyRecap />
+
+        <View style={styles.hadithCard}>
+          <Text style={styles.hadithOrnament}>✦</Text>
+          <Text style={styles.hadithArabic}>
+            أَحَبُّ الأَعْمَالِ إِلَى اللَّهِ تَعَالَى أَدْوَمُهَا وَإِنْ قَلَّ
+          </Text>
+          <View style={styles.hadithDivider} />
+          <Text style={styles.hadithTranslation}>
+            {language === 'id'
+              ? '"Amalan yang paling dicintai oleh Allah Ta\'ala adalah amalan yang kontinu (istiqomah) walaupun itu sedikit."'
+              : '"The most beloved deeds to Allah are those done consistently, even if they are few."'}
+          </Text>
+          <Text style={styles.hadithSource}>— HR. Muslim no. 783</Text>
+        </View>
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
@@ -279,6 +293,48 @@ const styles = StyleSheet.create({
   lastPageNumber: {
     fontWeight: '700',
     color: AppColors.primary,
+  },
+  hadithCard: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    backgroundColor: AppColors.card,
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: AppColors.primary + '28',
+  },
+  hadithOrnament: {
+    fontSize: 14,
+    color: AppColors.secondary,
+    marginBottom: 12,
+  },
+  hadithArabic: {
+    fontSize: 21,
+    color: AppColors.primary,
+    textAlign: 'center',
+    lineHeight: 40,
+    fontWeight: '600',
+    marginBottom: 14,
+  },
+  hadithDivider: {
+    width: 56,
+    height: 1.5,
+    backgroundColor: AppColors.secondary,
+    marginBottom: 14,
+  },
+  hadithTranslation: {
+    fontSize: 13,
+    color: AppColors.textPrimary,
+    lineHeight: 20,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  hadithSource: {
+    fontSize: 12,
+    color: AppColors.secondary,
+    fontWeight: '600',
   },
   bottomSpacer: {
     height: 20,
