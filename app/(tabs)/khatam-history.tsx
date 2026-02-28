@@ -112,10 +112,7 @@ const styles = StyleSheet.create({
     padding: 24,
     marginHorizontal: 16,
     marginVertical: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
     elevation: 3,
   },
   summaryCount: {
@@ -150,10 +147,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 14,
     gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
+    boxShadow: '0 1px 4px rgba(0, 0, 0, 0.06)',
     elevation: 2,
   },
   itemNumber: {
