@@ -1,6 +1,8 @@
 import { AppColors } from '@/constants/Colors';
+import { useLanguage } from '@/context/LanguageContext';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import dayjs from 'dayjs';
+import 'dayjs/locale/en';
 import 'dayjs/locale/id';
 import React, { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -15,11 +17,15 @@ interface Props {
 
 export default function DatePickerInput({ value, minDate, label, onChange }: Props) {
     const defaultStyles = useDefaultStyles();
+    const { language, t } = useLanguage();
     const [showModal, setShowModal] = useState(false);
     const [pendingDate, setPendingDate] = useState<string>(value || '');
 
+    const dateLocale = language === 'id' ? 'id-ID' : 'en-US';
+    const pickerLocale = language === 'id' ? 'id' : 'en';
+
     const displayLabel = value
-        ? new Date(value + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+        ? new Date(value + 'T00:00:00').toLocaleDateString(dateLocale, { day: 'numeric', month: 'long', year: 'numeric' })
         : label;
 
     const pickerDate = pendingDate || minDate || dayjs().add(1, 'day').format('YYYY-MM-DD');
@@ -69,7 +75,7 @@ export default function DatePickerInput({ value, minDate, label, onChange }: Pro
                             mode="single"
                             date={pickerDate}
                             minDate={minDate}
-                            locale="id"
+                            locale={pickerLocale}
                             onChange={handleChange}
                             styles={{
                                 ...defaultStyles,
@@ -85,14 +91,14 @@ export default function DatePickerInput({ value, minDate, label, onChange }: Pro
                         />
                         <View style={styles.actions}>
                             <Pressable style={styles.cancelBtn} onPress={() => setShowModal(false)}>
-                                <Text style={styles.cancelText}>Batal</Text>
+                                <Text style={styles.cancelText}>{t.common.cancel}</Text>
                             </Pressable>
                             <Pressable
                                 style={[styles.confirmBtn, !pendingDate && styles.confirmBtnDisabled]}
                                 onPress={handleConfirm}
                                 disabled={!pendingDate}
                             >
-                                <Text style={styles.confirmText}>Konfirmasi</Text>
+                                <Text style={styles.confirmText}>{t.common.confirm}</Text>
                             </Pressable>
                         </View>
                     </Pressable>
