@@ -43,7 +43,10 @@ export default function ProgressScreen() {
 
         <JuzBarChart juzProgress={juzProgress} />
 
-        <View style={styles.filterRow}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterRow}>
           {filters.map((f) => (
             <Pressable
               key={f.key}
@@ -54,7 +57,7 @@ export default function ProgressScreen() {
               </Text>
             </Pressable>
           ))}
-        </View>
+        </ScrollView>
 
         {filteredJuz.map((jp) => (
           <JuzCard key={jp.juz.id} juzProgress={jp} />
