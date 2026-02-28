@@ -4,10 +4,11 @@ export type Language = 'id' | 'en';
 
 export interface TargetSettings {
   enabled: boolean;
-  mode: 'days' | 'khatam_per_month'; // Target by days or khatam per month
+  mode: 'days' | 'khatam_per_month' | 'target_date'; // Target by days, khatam per month, or specific date
   targetDays: number;        // Used when mode = 'days'
   khatamPerMonth: number;    // Used when mode = 'khatam_per_month'
   startDate: string;         // ISO date string when target started (YYYY-MM-DD)
+  targetDate?: string;       // ISO date string for end date (YYYY-MM-DD), used when mode = 'target_date'
 }
 
 export interface AppSettings {

@@ -53,9 +53,16 @@ export default function DailyTargetCard() {
     const endDateStr = endDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 
     // Generate mode description
-    const modeDescription = targetSettings.mode === 'days'
-        ? `Target Khatam dalam ${targetSettings.targetDays} ${t.target.presets.week.includes('Days') ? 'Days' : 'Hari'}`
-        : `Target Khatam ${targetSettings.khatamPerMonth}x per Bulan`;
+    let modeDescription: string;
+    if (targetSettings.mode === 'days') {
+        modeDescription = `Target Khatam dalam ${targetSettings.targetDays} ${t.target.presets.week.includes('Days') ? 'Days' : 'Hari'}`;
+    } else if (targetSettings.mode === 'target_date' && targetSettings.targetDate) {
+        const d = new Date(targetSettings.targetDate + 'T00:00:00');
+        const dateLabel = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+        modeDescription = `${t.target.targetDateLabel} ${dateLabel}`;
+    } else {
+        modeDescription = `Target Khatam ${targetSettings.khatamPerMonth}x per Bulan`;
+    }
 
     return (
         <View style={styles.container}>

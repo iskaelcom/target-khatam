@@ -79,7 +79,8 @@ export const id: Translations = {
     customDays: 'Hari kustom',
     mode: {
       days: 'Target Hari',
-      khatamPerMonth: 'Khatam per Bulan',
+      khatamPerMonth: 'Khatam/Bulan',
+      targetDate: 'Target Tanggal',
     },
     khatamCount: 'khatam/bulan',
     presets: {
@@ -94,6 +95,9 @@ export const id: Translations = {
       thrice: '3x',
     },
     customKhatam: 'Khatam kustom',
+    selectTargetDate: 'Pilih tanggal target khatam',
+    targetDateLabel: 'Target khatam tanggal',
+    invalidDate: 'Tanggal tidak valid. Masukkan tanggal yang akan datang.',
     upToPage: 's/d hal.',
     untilDate: 's/d tgl.',
   },

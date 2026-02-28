@@ -1,3 +1,4 @@
+import DatePickerInput from '@/components/DatePickerInput';
 import { AppColors } from '@/constants/Colors';
 import { useLanguage } from '@/context/LanguageContext';
 import { useProgress } from '@/context/ProgressContext';
@@ -9,12 +10,10 @@ export default function TargetSettingsSection() {
     const { targetSettings, updateTargetSettings } = useProgress();
     const { t } = useLanguage();
 
-    // Show current value in custom input
     const getCurrentValue = () => {
-        if (targetSettings.mode === 'days') {
-            return targetSettings.targetDays.toString();
-        }
-        return targetSettings.khatamPerMonth.toString();
+        if (targetSettings.mode === 'days') return targetSettings.targetDays.toString();
+        if (targetSettings.mode === 'khatam_per_month') return targetSettings.khatamPerMonth.toString();
+        return '';
     };
 
     const [customInput, setCustomInput] = useState(getCurrentValue());
@@ -27,18 +26,10 @@ export default function TargetSettingsSection() {
         });
     };
 
-    const handleModeChange = async (mode: 'days' | 'khatam_per_month') => {
-        await updateTargetSettings({
-            ...targetSettings,
-            mode,
-            startDate: getTodayISO(),
-        });
-        // Update custom input to show new mode's value
-        if (mode === 'days') {
-            setCustomInput(targetSettings.targetDays.toString());
-        } else {
-            setCustomInput(targetSettings.khatamPerMonth.toString());
-        }
+    const handleModeChange = async (mode: 'days' | 'khatam_per_month' | 'target_date') => {
+        await updateTargetSettings({ ...targetSettings, mode, startDate: getTodayISO() });
+        if (mode === 'days') setCustomInput(targetSettings.targetDays.toString());
+        else if (mode === 'khatam_per_month') setCustomInput(targetSettings.khatamPerMonth.toString());
     };
 
     const handleDaysPreset = async (days: number) => {
@@ -66,23 +57,22 @@ export default function TargetSettingsSection() {
     const handleCustomSubmit = async () => {
         const value = parseInt(customInput, 10);
         if (isNaN(value) || value < 1) return;
-
         if (targetSettings.mode === 'days') {
-            await updateTargetSettings({
-                ...targetSettings,
-                enabled: true,
-                targetDays: value,
-                startDate: getTodayISO(),
-            });
+            await updateTargetSettings({ ...targetSettings, enabled: true, targetDays: value, startDate: getTodayISO() });
         } else {
-            await updateTargetSettings({
-                ...targetSettings,
-                enabled: true,
-                khatamPerMonth: value,
-                startDate: getTodayISO(),
-            });
+            await updateTargetSettings({ ...targetSettings, enabled: true, khatamPerMonth: value, startDate: getTodayISO() });
         }
-        // Don't clear input - keep showing the submitted value
+    };
+
+    const handleDateChange = async (dateStr: string) => {
+        if (!dateStr) return;
+        await updateTargetSettings({
+            ...targetSettings,
+            enabled: true,
+            mode: 'target_date',
+            targetDate: dateStr,
+            startDate: getTodayISO(),
+        });
     };
 
     return (
@@ -110,6 +100,14 @@ export default function TargetSettingsSection() {
                             </Text>
                         </Pressable>
                         <Pressable
+                            style={[styles.modeButton, targetSettings.mode === 'target_date' && styles.modeButtonActive]}
+                            onPress={() => handleModeChange('target_date')}
+                        >
+                            <Text style={[styles.modeText, targetSettings.mode === 'target_date' && styles.modeTextActive]}>
+                                {t.target.mode.targetDate}
+                            </Text>
+                        </Pressable>
+                        <Pressable
                             style={[styles.modeButton, targetSettings.mode === 'khatam_per_month' && styles.modeButtonActive]}
                             onPress={() => handleModeChange('khatam_per_month')}
                         >
@@ -119,76 +117,86 @@ export default function TargetSettingsSection() {
                         </Pressable>
                     </View>
 
-                    {/* Presets based on mode */}
-                    <Text style={styles.label}>
-                        {targetSettings.mode === 'days' ? t.target.targetDays : t.target.khatamCount}
-                    </Text>
-
-                    {targetSettings.mode === 'days' ? (
+                    {/* Content per mode */}
+                    {targetSettings.mode === 'target_date' ? (
                         <>
-                            <View style={styles.presetRow}>
-                                <PresetButton
-                                    label={t.target.presets.week}
-                                    selected={targetSettings.targetDays === 7}
-                                    onPress={() => handleDaysPreset(7)}
-                                />
-                                <PresetButton
-                                    label={t.target.presets.halfMonth}
-                                    selected={targetSettings.targetDays === 15}
-                                    onPress={() => handleDaysPreset(15)}
-                                />
-                            </View>
-                            <View style={styles.presetRow}>
-                                <PresetButton
-                                    label={t.target.presets.month}
-                                    selected={targetSettings.targetDays === 30}
-                                    onPress={() => handleDaysPreset(30)}
-                                />
-                                <PresetButton
-                                    label={t.target.presets.twoMonths}
-                                    selected={targetSettings.targetDays === 60}
-                                    onPress={() => handleDaysPreset(60)}
-                                />
-                            </View>
+                            <Text style={styles.label}>{t.target.selectTargetDate}</Text>
+                            <DatePickerInput
+                                value={targetSettings.targetDate || ''}
+                                minDate={getTomorrowISO()}
+                                label={t.target.selectTargetDate}
+                                onChange={handleDateChange}
+                            />
                         </>
                     ) : (
-                        <View style={styles.presetRow}>
-                            <PresetButton
-                                label={t.target.presetsKhatam.once}
-                                selected={targetSettings.khatamPerMonth === 1}
-                                onPress={() => handleKhatamPreset(1)}
-                            />
-                            <PresetButton
-                                label={t.target.presetsKhatam.twice}
-                                selected={targetSettings.khatamPerMonth === 2}
-                                onPress={() => handleKhatamPreset(2)}
-                            />
-                            <PresetButton
-                                label={t.target.presetsKhatam.thrice}
-                                selected={targetSettings.khatamPerMonth === 3}
-                                onPress={() => handleKhatamPreset(3)}
-                            />
-                        </View>
-                    )}
+                        <>
+                            <Text style={styles.label}>
+                                {targetSettings.mode === 'days' ? t.target.targetDays : t.target.khatamCount}
+                            </Text>
 
-                    {/* Custom input */}
-                    <View style={styles.customRow}>
-                        <TextInput
-                            style={styles.customInput}
-                            placeholder={targetSettings.mode === 'days' ? t.target.customDays : t.target.customKhatam}
-                            placeholderTextColor={AppColors.textSecondary}
-                            keyboardType="number-pad"
-                            value={customInput}
-                            onChangeText={setCustomInput}
-                            onSubmitEditing={handleCustomSubmit}
-                        />
-                        <Pressable
-                            style={styles.customButton}
-                            onPress={handleCustomSubmit}
-                        >
-                            <MaterialCommunityIcons name="check" size={20} color={AppColors.white} />
-                        </Pressable>
-                    </View>
+                            {targetSettings.mode === 'days' ? (
+                                <>
+                                    <View style={styles.presetRow}>
+                                        <PresetButton
+                                            label={t.target.presets.week}
+                                            selected={targetSettings.targetDays === 7}
+                                            onPress={() => handleDaysPreset(7)}
+                                        />
+                                        <PresetButton
+                                            label={t.target.presets.halfMonth}
+                                            selected={targetSettings.targetDays === 15}
+                                            onPress={() => handleDaysPreset(15)}
+                                        />
+                                    </View>
+                                    <View style={styles.presetRow}>
+                                        <PresetButton
+                                            label={t.target.presets.month}
+                                            selected={targetSettings.targetDays === 30}
+                                            onPress={() => handleDaysPreset(30)}
+                                        />
+                                        <PresetButton
+                                            label={t.target.presets.twoMonths}
+                                            selected={targetSettings.targetDays === 60}
+                                            onPress={() => handleDaysPreset(60)}
+                                        />
+                                    </View>
+                                </>
+                            ) : (
+                                <View style={styles.presetRow}>
+                                    <PresetButton
+                                        label={t.target.presetsKhatam.once}
+                                        selected={targetSettings.khatamPerMonth === 1}
+                                        onPress={() => handleKhatamPreset(1)}
+                                    />
+                                    <PresetButton
+                                        label={t.target.presetsKhatam.twice}
+                                        selected={targetSettings.khatamPerMonth === 2}
+                                        onPress={() => handleKhatamPreset(2)}
+                                    />
+                                    <PresetButton
+                                        label={t.target.presetsKhatam.thrice}
+                                        selected={targetSettings.khatamPerMonth === 3}
+                                        onPress={() => handleKhatamPreset(3)}
+                                    />
+                                </View>
+                            )}
+
+                            <View style={styles.customRow}>
+                                <TextInput
+                                    style={styles.customInput}
+                                    placeholder={targetSettings.mode === 'days' ? t.target.customDays : t.target.customKhatam}
+                                    placeholderTextColor={AppColors.textSecondary}
+                                    keyboardType="number-pad"
+                                    value={customInput}
+                                    onChangeText={setCustomInput}
+                                    onSubmitEditing={handleCustomSubmit}
+                                />
+                                <Pressable style={styles.customButton} onPress={handleCustomSubmit}>
+                                    <MaterialCommunityIcons name="check" size={20} color={AppColors.white} />
+                                </Pressable>
+                            </View>
+                        </>
+                    )}
                 </>
             )}
         </View>
@@ -222,6 +230,15 @@ function getTodayISO(): string {
     return `${y}-${m}-${d}`;
 }
 
+function getTomorrowISO(): string {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const y = tomorrow.getFullYear();
+    const m = String(tomorrow.getMonth() + 1).padStart(2, '0');
+    const d = String(tomorrow.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+
 const styles = StyleSheet.create({
     section: {
         paddingHorizontal: 20,
@@ -244,12 +261,12 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         padding: 4,
         marginBottom: 16,
-        gap: 8,
+        gap: 4,
     },
     modeButton: {
         flex: 1,
         paddingVertical: 8,
-        paddingHorizontal: 12,
+        paddingHorizontal: 6,
         borderRadius: 6,
         alignItems: 'center',
     },
@@ -257,9 +274,10 @@ const styles = StyleSheet.create({
         backgroundColor: AppColors.primary,
     },
     modeText: {
-        fontSize: 13,
+        fontSize: 11,
         fontWeight: '600',
         color: AppColors.textSecondary,
+        textAlign: 'center',
     },
     modeTextActive: {
         color: AppColors.white,

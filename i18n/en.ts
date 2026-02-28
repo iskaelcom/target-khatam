@@ -77,7 +77,8 @@ export const en = {
     customDays: 'Custom days',
     mode: {
       days: 'Target Days',
-      khatamPerMonth: 'Khatam per Month',
+      khatamPerMonth: 'Khatam/Month',
+      targetDate: 'Target Date',
     },
     khatamCount: 'khatam/month',
     presets: {
@@ -92,6 +93,9 @@ export const en = {
       thrice: '3x',
     },
     customKhatam: 'Custom khatam/month',
+    selectTargetDate: 'Select target completion date',
+    targetDateLabel: 'Khatam target on',
+    invalidDate: 'Invalid date. Please enter a valid future date.',
     upToPage: 'up to p.',
     untilDate: 'until',
   },

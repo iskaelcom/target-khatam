@@ -44,6 +44,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     targetDays: 30,
     khatamPerMonth: 2,
     startDate: '',
+    targetDate: '',
   });
   const [khatamHistory, setKhatamHistory] = useState<KhatamHistory>({ completions: [], totalCount: 0 });
   const [isLoading, setIsLoading] = useState(true);
@@ -219,7 +220,7 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
     setReadPages([]);
     setDailyLog({});
     dailyLogRef.current = {};
-    setTargetSettings({ enabled: false, mode: 'days', targetDays: 30, khatamPerMonth: 2, startDate: '' });
+    setTargetSettings({ enabled: false, mode: 'days', targetDays: 30, khatamPerMonth: 2, startDate: '', targetDate: '' });
   }, []);
 
   const juzProgress = useMemo(() => getJuzProgress(readPages), [readPages]);
@@ -232,27 +233,42 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
       const daysPerKhatam = Math.floor(30 / targetSettings.khatamPerMonth);
       return {
         effectiveTargetDays: daysPerKhatam,
-        targetTotalPages: TOTAL_PAGES, // Single khatam, cycle is shorter
+        targetTotalPages: TOTAL_PAGES,
+      };
+    }
+    if (targetSettings.mode === 'target_date' && targetSettings.targetDate) {
+      const start = new Date(targetSettings.startDate + 'T00:00:00');
+      const end = new Date(targetSettings.targetDate + 'T00:00:00');
+      const totalDays = Math.max(1, Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+      return {
+        effectiveTargetDays: totalDays,
+        targetTotalPages: TOTAL_PAGES,
       };
     }
     return {
       effectiveTargetDays: targetSettings.targetDays,
-      targetTotalPages: TOTAL_PAGES, // Single khatam
+      targetTotalPages: TOTAL_PAGES,
     };
-  }, [targetSettings.mode, targetSettings.targetDays, targetSettings.khatamPerMonth]);
+  }, [targetSettings.mode, targetSettings.targetDays, targetSettings.khatamPerMonth, targetSettings.startDate, targetSettings.targetDate]);
 
   // Calculate days remaining
   const daysRemaining = useMemo(() => {
     if (!targetSettings.enabled || !targetSettings.startDate) return null;
 
-    const start = new Date(targetSettings.startDate + 'T00:00:00');
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+
+    if (targetSettings.mode === 'target_date' && targetSettings.targetDate) {
+      const end = new Date(targetSettings.targetDate + 'T00:00:00');
+      const remaining = Math.floor((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      return Math.max(0, remaining);
+    }
+
+    const start = new Date(targetSettings.startDate + 'T00:00:00');
     const diffTime = today.getTime() - start.getTime();
     const daysPassed = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
     if (targetSettings.mode === 'khatam_per_month') {
-      // For khatam mode, show remaining days in CURRENT khatam cycle
       const daysPerKhatam = 30 / targetSettings.khatamPerMonth;
       const currentCycleDays = daysPassed % daysPerKhatam;
       const remaining = Math.ceil(daysPerKhatam - currentCycleDays);
