@@ -135,9 +135,10 @@ export default function HomeScreen() {
         </View>
 
         <DailyTargetCard />
-        <KhatamHistoryCard />
 
         <DailyRecap />
+
+        <KhatamHistoryCard />
 
         <View style={styles.hadithCard}>
           <Text style={styles.hadithOrnament}>✦</Text>
