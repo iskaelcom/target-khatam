@@ -109,6 +109,8 @@ export const id: Translations = {
     noHistory: 'Belum ada khatam yang diselesaikan',
     congratulations: 'Selamat!',
     completionMessage: 'Anda telah menyelesaikan membaca seluruh Al-Quran!',
+    total: 'Total',
+    alhamdulillah: 'ALHAMDULILLAH',
     startAgain: 'Mulai Lagi',
     startAgainConfirm: 'Mulai khatam baru? Progres bacaan akan direset tetapi riwayat khatam tetap tersimpan.',
     viewHistory: 'Lihat Riwayat',

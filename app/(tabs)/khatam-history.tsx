@@ -8,13 +8,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function KhatamHistoryScreen() {
   const { khatamHistory } = useProgress();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const formatDate = (isoString: string) => {
     const date = new Date(isoString);
     const day = date.getDate();
-    const month = date.toLocaleDateString('id-ID', { month: 'short' });
+    const month = date.toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { month: 'short' });
     const year = date.getFullYear();
     return `${day} ${month} ${year}`;
   };

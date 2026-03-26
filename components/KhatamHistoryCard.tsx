@@ -8,7 +8,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function KhatamHistoryCard() {
     const { khatamHistory } = useProgress();
-    const { t } = useLanguage();
+    const { language, t } = useLanguage();
     const router = useRouter();
     const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -19,7 +19,7 @@ export default function KhatamHistoryCard() {
     const formatDate = (isoString: string) => {
         const date = new Date(isoString);
         const day = date.getDate();
-        const month = date.toLocaleDateString('id-ID', { month: 'short' });
+        const month = date.toLocaleDateString(t.app.title.includes('Target') && language === 'id' ? 'id-ID' : 'en-US', { month: 'short' });
         const year = date.getFullYear();
         return `${day} ${month} ${year}`;
     };

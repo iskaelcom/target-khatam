@@ -1,6 +1,7 @@
 import { JUZ_DATA, TOTAL_PAGES } from '@/constants/quranData';
 import { addKhatamCompletion, clearAllData, getDailyLog, getKhatamHistory, getReadPages, getSettings, saveDailyLog, saveReadPages, saveSettings } from '@/services/storage';
 import { DailyLog, JuzProgress, KhatamCompletion, KhatamHistory, OverallProgress, ReadPages, TargetSettings } from '@/types';
+import { useLanguage } from '@/context/LanguageContext';
 import { getJuzProgress, getOverallProgress } from '@/utils/progress';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert } from 'react-native';
@@ -36,6 +37,7 @@ interface ProgressContextType {
 const ProgressContext = createContext<ProgressContextType | undefined>(undefined);
 
 export function ProgressProvider({ children }: { children: React.ReactNode }) {
+  const { t } = useLanguage();
   const [readPages, setReadPages] = useState<ReadPages>([]);
   const [dailyLog, setDailyLog] = useState<DailyLog>({});
   const [targetSettings, setTargetSettings] = useState<TargetSettings>({
@@ -182,9 +184,9 @@ export function ProgressProvider({ children }: { children: React.ReactNode }) {
 
     // Show celebration
     Alert.alert(
-      '🎉 Selamat! / Congratulations!',
-      `Anda telah menyelesaikan khatam!\nYou have completed reading the entire Quran!\n\nTotal: ${totalDays} hari / days`,
-      [{ text: 'Alhamdulillah' }]
+      `🎉 ${t.history.congratulations}`,
+      `${t.history.completionMessage}\n\n${t.history.total}: ${totalDays} ${t.history.daysTaken}`,
+      [{ text: t.history.alhamdulillah }]
     );
   }, [dailyLog]);
 
