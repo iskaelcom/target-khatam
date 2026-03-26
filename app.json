@@ -2,7 +2,7 @@
   "expo": {
     "name": "Khatam Tracker",
     "slug": "target-khatam",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "targetkhatam",
@@ -13,7 +13,7 @@
     },
     "android": {
       "package": "com.iskael.targetkhatam",
-      "versionCode": 2,
+      "versionCode": 6,
       "adaptiveIcon": {
         "backgroundColor": "#C4A84B",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
